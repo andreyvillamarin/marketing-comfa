@@ -112,6 +112,7 @@ include '../includes/header_miembro.php';
             <h3>Información Principal</h3>
             <p><strong>Descripción:</strong> <?php echo nl2br(e($tarea_info['descripcion'])); ?></p>
             <p><strong>Creado por:</strong> <?php echo e($tarea_info['creador_nombre']); ?></p>
+            <p><strong>Fecha de Creación:</strong> <?php echo date('d/m/Y H:i', strtotime($tarea_info['fecha_creacion'])); ?></p>
             <p><strong>Número de piezas:</strong> <?php echo e($tarea_info['numero_piezas']); ?></p>
             <p><strong>Negocio:</strong> <?php echo e($tarea_info['negocio']); ?></p>
             <p><strong>Fecha de Vencimiento:</strong> <?php echo date('d/m/Y H:i', strtotime($tarea_info['fecha_vencimiento'])); ?></p>

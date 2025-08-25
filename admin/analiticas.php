@@ -39,17 +39,17 @@ if ($fecha_inicio && $fecha_fin) {
             $data_pie = $stmt_pie->fetchAll();
             $datos_graficos['individual_pie'] = ['labels' => array_column($data_pie, 'estado'), 'data' => array_column($data_pie, 'total')];
 
-            $stmt_bar = $pdo->prepare("SELECT DATE_FORMAT(fecha_vencimiento, '%Y-%m') as mes, COUNT(*) as total FROM tareas t JOIN tareas_asignadas ta ON t.id_tarea = ta.id_tarea WHERE ta.id_usuario = ? AND t.fecha_vencimiento BETWEEN ? AND ? GROUP BY mes ORDER BY mes ASC");
+            $stmt_bar = $pdo->prepare("SELECT DATE_FORMAT(fecha_vencimiento, '%Y-%m') as mes, COUNT(*) as total FROM tareas t JOIN tareas_asignadas ta ON t.id_tarea = ta.id_tarea WHERE ta.id_usuario = ? AND t.fecha_creacion BETWEEN ? AND ? GROUP BY mes ORDER BY mes ASC");
             $stmt_bar->execute([$id_miembro_filtro, $fecha_inicio, $fecha_fin_sql]);
             $data_bar = $stmt_bar->fetchAll();
             $datos_graficos['individual_bar'] = ['labels' => array_column($data_bar, 'mes'), 'data' => array_column($data_bar, 'total')];
             
-            $stmt_completadas = $pdo->prepare("SELECT nombre_tarea FROM tareas t JOIN tareas_asignadas ta ON t.id_tarea = ta.id_tarea WHERE ta.id_usuario = ? AND t.estado = 'completada' AND t.fecha_vencimiento BETWEEN ? AND ?");
+            $stmt_completadas = $pdo->prepare("SELECT nombre_tarea FROM tareas t JOIN tareas_asignadas ta ON t.id_tarea = ta.id_tarea WHERE ta.id_usuario = ? AND t.estado = 'completada' AND t.fecha_creacion BETWEEN ? AND ?");
             $stmt_completadas->execute([$id_miembro_filtro, $fecha_inicio, $fecha_fin_sql]);
             $listados['completadas'] = $stmt_completadas->fetchAll();
             
-            $stmt_vencidas = $pdo->prepare("SELECT nombre_tarea, fecha_vencimiento FROM tareas t JOIN tareas_asignadas ta ON t.id_tarea = ta.id_tarea WHERE ta.id_usuario = ? AND t.estado != 'completada' AND t.fecha_vencimiento < NOW()");
-            $stmt_vencidas->execute([$id_miembro_filtro]);
+            $stmt_vencidas = $pdo->prepare("SELECT nombre_tarea, fecha_vencimiento FROM tareas t JOIN tareas_asignadas ta ON t.id_tarea = ta.id_tarea WHERE ta.id_usuario = ? AND t.estado != 'completada' AND t.fecha_vencimiento < NOW() AND t.fecha_creacion BETWEEN ? AND ?");
+            $stmt_vencidas->execute([$id_miembro_filtro, $fecha_inicio, $fecha_fin_sql]);
             $listados['vencidas'] = $stmt_vencidas->fetchAll();
             
             if(!empty($data_pie) || !empty($data_bar)) $datos_encontrados = true;
@@ -70,8 +70,8 @@ if ($fecha_inicio && $fecha_fin) {
             $data_pie = $stmt_pie->fetchAll();
             $datos_graficos['equipo_pie'] = ['labels' => array_column($data_pie, 'nombre_completo'), 'data' => array_column($data_pie, 'total')];
 
-            $stmt_vencidas = $pdo->prepare("SELECT u.nombre_completo, COUNT(t.id_tarea) as total FROM tareas t JOIN tareas_asignadas ta ON t.id_tarea = ta.id_tarea JOIN usuarios u ON ta.id_usuario = u.id_usuario WHERE t.estado != 'completada' AND t.fecha_vencimiento < NOW() AND u.rol IN ($placeholders) GROUP BY u.id_usuario ORDER BY total DESC");
-            $stmt_vencidas->execute($roles_incluidos);
+            $stmt_vencidas = $pdo->prepare("SELECT u.nombre_completo, COUNT(t.id_tarea) as total FROM tareas t JOIN tareas_asignadas ta ON t.id_tarea = ta.id_tarea JOIN usuarios u ON ta.id_usuario = u.id_usuario WHERE t.estado != 'completada' AND t.fecha_vencimiento < NOW() AND t.fecha_creacion BETWEEN ? AND ? AND u.rol IN ($placeholders) GROUP BY u.id_usuario ORDER BY total DESC");
+            $stmt_vencidas->execute(array_merge([$fecha_inicio, $fecha_fin_sql], $roles_incluidos));
             $listados['vencidas'] = $stmt_vencidas->fetchAll();
             // --- FIN DE LA MODIFICACIÓN ---
             
@@ -171,8 +171,8 @@ if ($fecha_inicio && $fecha_fin) {
 
 include '../includes/header_admin.php';
 ?>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0/dist/chartjs-plugin-datalabels.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-datalabels/2.2.0/chartjs-plugin-datalabels.min.js"></script>
 <?php if (isset($error) && !empty($error)): ?><div class="alert alert-danger"><?php echo e($error); ?></div><?php endif; ?>
 <div class="card">
     <form action="analiticas.php" method="GET">
@@ -329,12 +329,13 @@ include '../includes/header_admin.php';
                 <hr>
                 <strong>Total de Piezas:</strong> <?php echo $summary['total_piezas']; ?><br>
                 <strong>Tareas por Negocio:</strong><br>
-                <?php if (empty($summary['por_negocio'])): ?>
-                    <span>No hay datos de negocio.</span>
-                <?php else: ?>
-                    <?php foreach ($summary['por_negocio'] as $negocio => $cantidad): ?>
-                        - <?php echo e($negocio); ?>: <?php echo $cantidad; ?><br>
-                    <?php endforeach; ?>
+                <?php if (empty($summary['por_negocio'])):
+                    ?><span>No hay datos de negocio.</span><?php
+                else:
+                    ?>
+                    <?php foreach ($summary['por_negocio'] as $negocio => $cantidad):
+                        ?>- <?php echo e($negocio); ?>: <?php echo $cantidad; ?><br><?php
+                    endforeach; ?>
                 <?php endif; ?>
             </div>
         </div>
@@ -355,7 +356,7 @@ include '../includes/header_admin.php';
         <script>
         document.addEventListener('DOMContentLoaded', function () {
             const requerimientosNegocioData = {
-                labels: <?php echo json_encode($datos_graficos['requerimientos_negocio_pie']['labels']); ?>,
+                labels: <?php echo json_encode($datos_graficos['requerimientos_negocio_pie']['labels']); ?>, 
                 datasets: [{
                     data: <?php echo json_encode($datos_graficos['requerimientos_negocio_pie']['data']); ?>,
                     backgroundColor: ['rgba(255, 99, 132, 0.7)','rgba(54, 162, 235, 0.7)','rgba(255, 206, 86, 0.7)','rgba(75, 192, 192, 0.7)','rgba(153, 102, 255, 0.7)','rgba(255, 159, 64, 0.7)']
@@ -367,6 +368,6 @@ include '../includes/header_admin.php';
     <?php endif; ?>
 <?php elseif ($fecha_inicio && $fecha_fin): ?>
     <div class="alert alert-info" style="margin-top:20px;">No se encontraron datos para el tipo de informe y el rango de fechas seleccionados.</div>
-    <?php endif; ?>
+<?php endif; ?>
 
 <?php include '../includes/footer_admin.php'; ?>

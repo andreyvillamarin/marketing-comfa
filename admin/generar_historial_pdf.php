@@ -11,7 +11,6 @@ use Dompdf\Dompdf;
 use Dompdf\Options;
 
 // Comprobar sesión y permisos
-session_start();
 if (!isset($_SESSION['user_id'])) {
     die("Acceso denegado. Debes iniciar sesión.");
 }
@@ -92,6 +91,7 @@ $html = "
         <p><strong>ID de Tarea:</strong> T-" . e($tarea['id_tarea']) . "</p>
         <p><strong>Nombre:</strong> " . e($tarea['nombre_tarea']) . "</p>
         <p><strong>Creado por:</strong> " . e($tarea['nombre_creador']) . "</p>
+        <p><strong>Fecha de Creación:</strong> " . date('d/m/Y H:i', strtotime($tarea['fecha_creacion'])) . "</p>
         <p><strong>Negocio:</strong> " . e($tarea['negocio'] ?? 'No especificado') . "</p>
         <p><strong>Número de Piezas:</strong> " . e($tarea['numero_piezas'] ?? 'No especificado') . "</p>
         <p><strong>Descripción:</strong> " . nl2br(e($tarea['descripcion'])) . "</p>

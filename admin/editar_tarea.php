@@ -146,6 +146,7 @@ include '../includes/header_admin.php';
         <?php endif; ?>
         <form action="editar_tarea.php?id=<?php echo $id_tarea; ?>" method="POST" enctype="multipart/form-data">
             <div class="form-group"><label>Nombre (*)</label><input type="text" name="nombre_tarea" value="<?php echo e($tarea['nombre_tarea']); ?>" required></div>
+            <div class="form-group"><label>Fecha Creación</label><input type="text" value="<?php echo date('d/m/Y H:i', strtotime($tarea['fecha_creacion'])); ?>" disabled></div>
             <div class="form-group"><label>Descripción</label><textarea name="descripcion" rows="5"><?php echo e($tarea['descripcion']); ?></textarea></div>
             <div class="form-group"><label>Fecha Vencimiento (*)</label><input type="datetime-local" name="fecha_vencimiento" value="<?php echo date('Y-m-d\TH:i', strtotime($tarea['fecha_vencimiento'])); ?>" required></div>
             <div class="form-group"><label>Prioridad (*)</label><select name="prioridad" required><option value="baja" <?php if($tarea['prioridad'] == 'baja') echo 'selected'; ?>>Baja</option><option value="media" <?php if($tarea['prioridad'] == 'media') echo 'selected'; ?>>Media</option><option value="alta" <?php if($tarea['prioridad'] == 'alta') echo 'selected'; ?>>Alta</option></select></div>

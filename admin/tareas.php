@@ -83,6 +83,7 @@ include '../includes/header_admin.php';
                     <th>Creador</th>
                     <th>Miembro Asignado</th>
                     <th>Negocio</th>
+                    <th>Fecha Creación</th>
                     <th>Fecha Vencimiento</th>
                     <th>Estado</th>
                     <th>Prioridad</th>
@@ -91,7 +92,7 @@ include '../includes/header_admin.php';
             </thead>
             <tbody>
                 <?php if (empty($tareas)): ?>
-                    <tr><td colspan="<?php echo ($rol_usuario_actual === 'admin') ? '9' : '8'; ?>" style="text-align:center;">No se encontraron tareas.</td></tr>
+                    <tr><td colspan="<?php echo ($rol_usuario_actual === 'admin') ? '10' : '9'; ?>" style="text-align:center;">No se encontraron tareas.</td></tr>
                 <?php else: ?>
                     <?php foreach ($tareas as $tarea): ?>
                         <tr>
@@ -100,6 +101,7 @@ include '../includes/header_admin.php';
                             <td><?php echo e($tarea['creador']); ?></td>
                             <td><?php echo e($tarea['miembros_asignados'] ?? 'N/A'); ?></td>
                             <td><?php echo e($tarea['negocio'] ?? 'N/A'); ?></td>
+                            <td><?php echo date('d/m/Y H:i', strtotime($tarea['fecha_creacion'])); ?></td>
                             <td><?php echo date('d/m/Y H:i', strtotime($tarea['fecha_vencimiento'])); ?></td>
                             <td>
                                 <?php echo mostrar_estado_tarea($tarea); ?>
