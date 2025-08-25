@@ -1,2 +1,19 @@
 [12-Aug-2025 10:47:18 America/Bogota] PHP Notice:  session_start(): Ignoring session_start() because a session is already active (started from /home/qdosnetw/public_html/demos/marketing/includes/config.php on line 34) in /home/qdosnetw/public_html/demos/marketing/admin/generar_historial_pdf.php on line 14
 [21-Aug-2025 15:22:06 America/Bogota] PHP Notice:  session_start(): Ignoring session_start() because a session is already active (started from /home/comfalink/public_html/marketing/includes/config.php on line 34) in /home/comfalink/public_html/marketing/admin/generar_historial_pdf.php on line 14
+[25-Aug-2025 07:51:32 America/Bogota] PHP Warning:  Undefined array key "nombre_tarea" in /home/comfalink/public_html/marketing/admin/crear_tarea.php on line 16
+[25-Aug-2025 07:51:32 America/Bogota] PHP Warning:  Undefined array key "descripcion" in /home/comfalink/public_html/marketing/admin/crear_tarea.php on line 17
+[25-Aug-2025 07:51:32 America/Bogota] PHP Warning:  Undefined array key "fecha_vencimiento" in /home/comfalink/public_html/marketing/admin/crear_tarea.php on line 18
+[25-Aug-2025 07:51:32 America/Bogota] PHP Warning:  Undefined array key "prioridad" in /home/comfalink/public_html/marketing/admin/crear_tarea.php on line 19
+[25-Aug-2025 07:53:23 America/Bogota] PHP Warning:  Undefined array key "nombre_tarea" in /home/comfalink/public_html/marketing/admin/crear_tarea.php on line 16
+[25-Aug-2025 07:53:23 America/Bogota] PHP Warning:  Undefined array key "descripcion" in /home/comfalink/public_html/marketing/admin/crear_tarea.php on line 17
+[25-Aug-2025 07:53:23 America/Bogota] PHP Warning:  Undefined array key "fecha_vencimiento" in /home/comfalink/public_html/marketing/admin/crear_tarea.php on line 18
+[25-Aug-2025 07:53:23 America/Bogota] PHP Warning:  Undefined array key "prioridad" in /home/comfalink/public_html/marketing/admin/crear_tarea.php on line 19
+[25-Aug-2025 07:55:59 America/Bogota] PHP Warning:  Undefined array key "nombre_tarea" in /home/comfalink/public_html/marketing/admin/crear_tarea.php on line 16
+[25-Aug-2025 07:55:59 America/Bogota] PHP Warning:  Undefined array key "descripcion" in /home/comfalink/public_html/marketing/admin/crear_tarea.php on line 17
+[25-Aug-2025 07:55:59 America/Bogota] PHP Warning:  Undefined array key "fecha_vencimiento" in /home/comfalink/public_html/marketing/admin/crear_tarea.php on line 18
+[25-Aug-2025 07:55:59 America/Bogota] PHP Warning:  Undefined array key "prioridad" in /home/comfalink/public_html/marketing/admin/crear_tarea.php on line 19
+[25-Aug-2025 08:03:27 America/Bogota] PHP Warning:  Undefined array key "nombre_tarea" in /home/comfalink/public_html/marketing/admin/crear_tarea.php on line 16
+[25-Aug-2025 08:03:27 America/Bogota] PHP Warning:  Undefined array key "descripcion" in /home/comfalink/public_html/marketing/admin/crear_tarea.php on line 17
+[25-Aug-2025 08:03:27 America/Bogota] PHP Warning:  Undefined array key "fecha_vencimiento" in /home/comfalink/public_html/marketing/admin/crear_tarea.php on line 18
+[25-Aug-2025 08:03:27 America/Bogota] PHP Warning:  Undefined array key "prioridad" in /home/comfalink/public_html/marketing/admin/crear_tarea.php on line 19
+[25-Aug-2025 13:26:17 America/Bogota] PHP Notice:  session_start(): Ignoring session_start() because a session is already active (started from /home/comfalink/public_html/marketing/includes/config.php on line 34) in /home/comfalink/public_html/marketing/admin/generar_historial_pdf.php on line 14

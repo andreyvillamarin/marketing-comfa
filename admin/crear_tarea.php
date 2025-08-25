@@ -13,11 +13,11 @@ $mensaje = '';
 $error = '';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $nombre_tarea = trim($_POST['nombre_tarea']);
-    $descripcion = trim($_POST['descripcion']);
-    $fecha_vencimiento = $_POST['fecha_vencimiento'];
-    $prioridad = $_POST['prioridad'];
-    $miembros_asignados = isset($_POST['miembros_asignados']) ? $_POST['miembros_asignados'] : [];
+    $nombre_tarea = trim($_POST['nombre_tarea'] ?? '');
+    $descripcion = trim($_POST['descripcion'] ?? '');
+    $fecha_vencimiento = $_POST['fecha_vencimiento'] ?? '';
+    $prioridad = $_POST['prioridad'] ?? '';
+    $miembros_asignados = $_POST['miembros_asignados'] ?? [];
     $numero_piezas = isset($_POST['numero_piezas']) && $_POST['numero_piezas'] !== '' ? (int)$_POST['numero_piezas'] : 0;
     $negocio = isset($_POST['negocio']) ? trim($_POST['negocio']) : '';
 

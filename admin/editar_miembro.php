@@ -21,7 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $rol = $_POST['rol'];
     // --- FIN DE LA MODIFICACIÓN ---
 
-    if (empty($nombre_completo) || empty($email) || empty($id_area) || !in_array($rol, ['miembro', 'analista'])) {
+    if (empty($nombre_completo) || empty($email) || empty($id_area) || !in_array($rol, ['miembro', 'analista', 'admin'])) {
         $error = "Nombre, email, área y un rol válido son campos obligatorios.";
     } else {
         try {
@@ -54,11 +54,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 // Obtener los datos actuales del miembro para pre-rellenar el formulario
-$stmt_miembro = $pdo->prepare("SELECT * FROM usuarios WHERE id_usuario = ? AND rol != 'admin'");
+$stmt_miembro = $pdo->prepare("SELECT * FROM usuarios WHERE id_usuario = ?");
 $stmt_miembro->execute([$id_miembro]);
 $miembro = $stmt_miembro->fetch();
 
-if (!$miembro) { header("Location: miembros.php"); exit(); }
+if (!$miembro || ($miembro['id_usuario'] === $_SESSION['user_id'] && $miembro['rol'] === 'admin')) {
+    // Redirigir si el miembro no existe o si es el admin principal intentando editarse a sí mismo
+    header("Location: miembros.php");
+    exit();
+}
+
 
 $page_title = 'Editando a: ' . e($miembro['nombre_completo']);
 $areas = $pdo->query("SELECT * FROM areas ORDER BY nombre_area")->fetchAll();
@@ -100,6 +105,7 @@ include '../includes/header_admin.php';
             <select name="rol" id="rol" required>
                 <option value="miembro" <?php if ($miembro['rol'] == 'miembro') echo 'selected'; ?>>Miembro de Equipo</option>
                 <option value="analista" <?php if ($miembro['rol'] == 'analista') echo 'selected'; ?>>Analista</option>
+                <option value="admin" <?php if ($miembro['rol'] == 'admin') echo 'selected'; ?>>Superadministrador</option>
             </select>
         </div>
         <hr>

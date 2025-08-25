@@ -28,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $id_area = $_POST['id_area'];
         $rol = $_POST['rol']; // Nuevo campo
 
-        if (!empty($nombre_completo) && !empty($email) && !empty($password) && !empty($id_area) && in_array($rol, ['miembro', 'analista'])) {
+        if (!empty($nombre_completo) && !empty($email) && !empty($password) && !empty($id_area) && in_array($rol, ['miembro', 'analista', 'admin'])) {
             $hashed_password = password_hash($password, PASSWORD_DEFAULT);
             try {
                 $stmt = $pdo->prepare("INSERT INTO usuarios (nombre_completo, email, password, rol, id_area) VALUES (?, ?, ?, ?, ?)");
@@ -99,7 +99,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 }
 
 $areas = $pdo->query("SELECT * FROM areas ORDER BY nombre_area")->fetchAll();
-$miembros = $pdo->query("SELECT u.*, a.nombre_area FROM usuarios u LEFT JOIN areas a ON u.id_area = a.id_area WHERE u.rol != 'admin' ORDER BY u.rol, u.nombre_completo")->fetchAll();
+$miembros = $pdo->query("SELECT u.*, a.nombre_area FROM usuarios u LEFT JOIN areas a ON u.id_area = a.id_area ORDER BY u.rol, u.nombre_completo")->fetchAll();
 
 include '../includes/header_admin.php';
 ?>
@@ -125,13 +125,13 @@ include '../includes/header_admin.php';
             <div class="form-group"><label for="email">Email</label><input type="email" name="email" required></div>
             <div class="form-group"><label for="password">Contraseña Inicial</label><input type="text" name="password" required></div>
             <div class="form-group"><label for="id_area">Área</label><select name="id_area" required><option value="">Seleccionar área...</option><?php foreach ($areas as $area): ?><option value="<?php echo $area['id_area']; ?>"><?php echo e($area['nombre_area']); ?></option><?php endforeach; ?></select></div>
-            <div class="form-group"><label for="rol">Rol del Usuario</label><select name="rol" required><option value="miembro" selected>Miembro de Equipo</option><option value="analista">Analista</option></select></div>
+            <div class="form-group"><label for="rol">Rol del Usuario</label><select name="rol" required><option value="miembro" selected>Miembro de Equipo</option><option value="analista">Analista</option><option value="admin">Superadministrador</option></select></div>
             <button type="submit" name="crear_miembro" class="btn btn-success">Crear Usuario</button>
         </form>
     </div>
 </div>
 <div class="card" style="margin-top: 20px;">
-    <h3>Lista de Usuarios (Miembros y Analistas)</h3>
+    <h3>Lista de Usuarios</h3>
     <div class="table-wrapper">
         <table>
             <thead><tr><th>Nombre</th><th>Email</th><th>Área</th><th>Rol</th><th>Acciones</th></tr></thead>
@@ -143,8 +143,14 @@ include '../includes/header_admin.php';
                     <td><?php echo e($miembro['nombre_area'] ?? 'N/A'); ?></td>
                     <td><strong><?php echo e(ucfirst($miembro['rol'])); ?></strong></td>
                     <td class="actions">
-                        <a href="editar_miembro.php?id=<?php echo $miembro['id_usuario']; ?>" class="btn btn-warning" title="Editar Usuario"><i class="fas fa-pencil-alt"></i></a>
-                        <a href="miembros.php?eliminar_miembro=<?php echo $miembro['id_usuario']; ?>" class="btn btn-danger" title="Eliminar Usuario" onclick="return confirm('¿Estás seguro?')"><i class="fas fa-trash-can"></i></a>
+                        <?php if ($miembro['id_usuario'] !== $_SESSION['user_id']): ?>
+                            <a href="editar_miembro.php?id=<?php echo $miembro['id_usuario']; ?>" class="btn btn-warning" title="Editar Usuario"><i class="fas fa-pencil-alt"></i></a>
+                            <?php if ($miembro['rol'] !== 'admin'): ?>
+                                <a href="miembros.php?eliminar_miembro=<?php echo $miembro['id_usuario']; ?>" class="btn btn-danger" title="Eliminar Usuario" onclick="return confirm('¿Estás seguro?')"><i class="fas fa-trash-can"></i></a>
+                            <?php endif; ?>
+                        <?php else: ?>
+                            <small>No puedes editarte o eliminarte a ti mismo desde esta lista.</small>
+                        <?php endif; ?>
                     </td>
                 </tr>
                 <?php endforeach; ?>
