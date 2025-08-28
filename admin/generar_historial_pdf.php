@@ -94,7 +94,8 @@ $html = "
         <p><strong>Fecha de Creación:</strong> " . date('d/m/Y H:i', strtotime($tarea['fecha_creacion'])) . "</p>
         <p><strong>Negocio:</strong> " . e($tarea['negocio'] ?? 'No especificado') . "</p>
         <p><strong>Número de Piezas:</strong> " . e($tarea['numero_piezas'] ?? 'No especificado') . "</p>
-        <p><strong>Descripción:</strong> " . nl2br(e($tarea['descripcion'])) . "</p>
+        <p><strong>Descripción:</strong></p>
+        <div style='padding: 10px; border: 1px solid #eee; border-radius: 5px; background: #f9f9f9;'>" . $tarea['descripcion'] . "</div>
         <p><strong>Fecha de Vencimiento:</strong> " . date('d/m/Y H:i', strtotime($tarea['fecha_vencimiento'])) . "</p>
         <p><strong>Prioridad:</strong> " . ucfirst(e($tarea['prioridad'])) . "</p>
         <p><strong>Estado Actual:</strong> " . ucfirst(str_replace('_', ' ', e($tarea['estado']))) . "</p>

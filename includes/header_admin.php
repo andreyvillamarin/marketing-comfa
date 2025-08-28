@@ -7,6 +7,19 @@
     <link rel="icon" type="image/png" href="<?php echo BASE_URL; ?>/assets/img/favicon.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>/assets/css/style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/5.10.9/tinymce.min.js" integrity="sha512-y1l3DKVl9YKQjMEsJOdhEsHrvcm7anV9XjiHxXbjO0qojCnro9pbUPvJtobOTtK+eZjaAGXKBG/XhWnrTgV34Q==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script>
+      tinymce.init({
+        selector: '#descripcion',
+        plugins: 'lists link image paste autoresize',
+        toolbar: 'undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | outdent indent | numlist bullist',
+        paste_as_text: true,
+        valid_elements: 'p,h3,h4,b,strong,i,em,ul,ol,li,a[href|target=_blank]',
+        language: 'es',
+        language_url: 'https://cdnjs.cloudflare.com/ajax/libs/tinymce/5.10.9/langs/es.js',
+        autoresize_bottom_margin: 50
+      });
+    </script>
 </head>
 <body>
     <nav id="sidebar-nav">

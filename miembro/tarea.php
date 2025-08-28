@@ -110,7 +110,10 @@ include '../includes/header_miembro.php';
     <div class="task-main-content">
         <div class="card">
             <h3>Información Principal</h3>
-            <p><strong>Descripción:</strong> <?php echo nl2br(e($tarea_info['descripcion'])); ?></p>
+            <p><strong>Descripción:</strong></p>
+            <div class="task-description-content" style="padding: 10px; border: 1px solid #eee; border-radius: 5px; background: #f9f9f9;">
+                <?php echo $tarea_info['descripcion']; ?>
+            </div>
             <p><strong>Creado por:</strong> <?php echo e($tarea_info['creador_nombre']); ?></p>
             <p><strong>Fecha de Creación:</strong> <?php echo date('d/m/Y H:i', strtotime($tarea_info['fecha_creacion'])); ?></p>
             <p><strong>Número de piezas:</strong> <?php echo e($tarea_info['numero_piezas']); ?></p>
