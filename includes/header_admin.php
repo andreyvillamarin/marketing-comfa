@@ -30,7 +30,8 @@
         <?php if (isset($_SESSION['user_rol'])): ?>
             <?php if ($_SESSION['user_rol'] === 'admin'): ?>
                 <a href="<?php echo BASE_URL; ?>/admin/crear_tarea.php">Crear Tarea</a>
-                <a href="<?php echo BASE_URL; ?>/admin/tareas.php">Todas las Tareas</a>
+                <a href="<?php echo BASE_URL; ?>/admin/tareas.php">Tareas Activas</a>
+                <a href="<?php echo BASE_URL; ?>/admin/tareas_completadas.php">Tareas Completadas</a>
                 <a href="<?php echo BASE_URL; ?>/admin/miembros.php">Gestionar Equipo</a>
                 <a href="<?php echo BASE_URL; ?>/admin/analiticas.php">Analíticas</a>
             <?php elseif ($_SESSION['user_rol'] === 'analista'): ?>

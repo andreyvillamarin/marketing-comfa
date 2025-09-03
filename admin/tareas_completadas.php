@@ -1,4 +1,4 @@
-<?php $page_title = 'Todas las Tareas'; ?>
+<?php $page_title = 'Tareas Completadas'; ?>
 <?php
 require_once '../includes/config.php'; require_once '../includes/db.php'; require_once '../includes/funciones.php';
 if (!isset($_SESSION['user_id']) || !in_array($_SESSION['user_rol'], ['admin', 'analista'])) { header("Location: login.php"); exit(); }
@@ -26,7 +26,7 @@ $sql = "
         usuarios u_asignado ON ta.id_usuario = u_asignado.id_usuario
 ";
 $params = [];
-$where_clauses = ["t.estado != 'completada'"];
+$where_clauses = ["t.estado = 'completada'"];
 
 if ($rol_usuario_actual === 'analista') {
     $where_clauses[] = "t.id_admin_creador = ?";
@@ -42,15 +42,6 @@ if (!empty($_GET['q'])) {
     $params[] = $search_term;
 }
 
-if (!empty($_GET['estado'])) {
-    if ($_GET['estado'] == 'vencida') {
-        $where_clauses[] = "(t.estado = 'pendiente' AND t.fecha_vencimiento < CURDATE())";
-    } else {
-        $where_clauses[] = "t.estado = ?";
-        $params[] = $_GET['estado'];
-    }
-}
-
 if (!empty($_GET['fecha_creacion'])) {
     $where_clauses[] = "DATE(t.fecha_creacion) = ?";
     $params[] = $_GET['fecha_creacion'];
@@ -60,7 +51,7 @@ if (!empty($where_clauses)) {
     $sql .= " WHERE " . implode(' AND ', $where_clauses);
 }
 
-$sql .= " GROUP BY t.id_tarea ORDER BY t.fecha_vencimiento ASC";
+$sql .= " GROUP BY t.id_tarea ORDER BY t.fecha_vencimiento DESC"; // Order by most recent
 try { $stmt = $pdo->prepare($sql); $stmt->execute($params); $tareas = $stmt->fetchAll(); } 
 catch(PDOException $e) { die("Error al recuperar las tareas: " . $e->getMessage()); }
 include '../includes/header_admin.php';
@@ -68,7 +59,7 @@ include '../includes/header_admin.php';
 <?php if ($mensaje): ?><div class="alert alert-success"><?php echo e($mensaje); ?></div><?php endif; ?>
 <?php if ($error): ?><div class="alert alert-danger"><?php echo e($error); ?></div><?php endif; ?>
 <div class="card" id="filter-container">
-    <h3><i class="fas fa-filter"></i> Filtrar Tareas</h3>
+    <h3><i class="fas fa-filter"></i> Filtrar Tareas Completadas</h3>
     <div class="filter-controls">
         <div class="form-group search-group">
             <label for="q">Buscar:</label>
@@ -80,15 +71,8 @@ include '../includes/header_admin.php';
         </div>
         <button id="clear-filters-btn" class="btn btn-secondary">Limpiar</button>
     </div>
-    <div class="status-filters">
-        <strong>Estado:</strong>
-        <button class="filter-btn active" data-estado="">Todos</button>
-        <button class="filter-btn" data-estado="pendiente">Pendiente</button>
-        <button class="filter-btn" data-estado="finalizada_usuario">Finalizada por Usuario</button>
-        <button class="filter-btn" data-estado="vencida">Vencida</button>
-    </div>
 </div>
-<form action="tareas.php" method="POST" id="bulk-action-form">
+<form action="tareas_completadas.php" method="POST">
     <?php if ($rol_usuario_actual === 'admin'): ?>
     <button type="submit" name="eliminar_seleccionados" class="btn btn-danger" onclick="return confirm('Estas Seguro?');" style="margin-top: 20px;"><i class="fas fa-trash-can"></i> Eliminar Seleccionados</button>
     <?php endif; ?>
@@ -110,7 +94,7 @@ include '../includes/header_admin.php';
             </thead>
             <tbody id="task-table-body">
                 <?php if (empty($tareas)): ?>
-                    <tr><td colspan="<?php echo ($rol_usuario_actual === 'admin') ? '10' : '9'; ?>" style="text-align:center;">No se encontraron tareas.</td></tr>
+                    <tr><td colspan="<?php echo ($rol_usuario_actual === 'admin') ? '10' : '9'; ?>" style="text-align:center;">No se encontraron tareas completadas.</td></tr>
                 <?php else: ?>
                     <?php foreach ($tareas as $tarea): ?>
                         <tr>
@@ -144,23 +128,19 @@ include '../includes/header_admin.php';
 document.addEventListener('DOMContentLoaded', function () {
     const searchInput = document.getElementById('q');
     const dateInput = document.getElementById('fecha_creacion');
-    const statusButtons = document.querySelectorAll('.filter-btn');
     const tableBody = document.getElementById('task-table-body');
     const clearButton = document.getElementById('clear-filters-btn');
-    let activeStatusBtn = document.querySelector('.filter-btn.active');
     
     let debounceTimer;
 
     function fetchTasks() {
         const q = searchInput.value;
         const fecha = dateInput.value;
-        const estado = activeStatusBtn.getAttribute('data-estado');
         
         const params = new URLSearchParams({
             q: q,
             fecha_creacion: fecha,
-            estado: estado,
-            tipo_pagina: 'activas' // Para que el API sepa qué tipo de tareas buscar
+            tipo_pagina: 'completadas' // Para que el API sepa qué tipo de tareas buscar
         });
 
         // Muestra un indicador de carga
@@ -184,29 +164,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     dateInput.addEventListener('change', fetchTasks);
 
-    statusButtons.forEach(button => {
-        button.addEventListener('click', function () {
-            if (activeStatusBtn) {
-                activeStatusBtn.classList.remove('active');
-            }
-            this.classList.add('active');
-            activeStatusBtn = this;
-            fetchTasks();
-        });
-    });
-
     clearButton.addEventListener('click', function() {
         searchInput.value = '';
         dateInput.value = '';
-        
-        if (activeStatusBtn) {
-            activeStatusBtn.classList.remove('active');
-        }
-        // Set "Todos" as active
-        const allButton = document.querySelector('.filter-btn[data-estado=""]');
-        allButton.classList.add('active');
-        activeStatusBtn = allButton;
-
         fetchTasks();
     });
 });

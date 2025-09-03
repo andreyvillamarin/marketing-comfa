@@ -16,6 +16,17 @@ if (!$asignacion) { header("Location: index.php?error=permiso_denegado"); exit()
 $dias_notificacion_actual = $asignacion['notificacion_dias_antes'];
 $mensaje = ''; $error = '';
 
+// --- INICIO: Lógica para mostrar mensajes de sesión (Patrón PRG) ---
+if (isset($_SESSION['user_message'])) {
+    $mensaje = $_SESSION['user_message'];
+    unset($_SESSION['user_message']);
+}
+if (isset($_SESSION['user_error'])) {
+    $error = $_SESSION['user_error'];
+    unset($_SESSION['user_error']);
+}
+// --- FIN: Lógica para mostrar mensajes de sesión ---
+
 $stmt_tarea_info = $pdo->prepare("SELECT t.*, u.email as creador_email, u.nombre_completo as creador_nombre FROM tareas t JOIN usuarios u ON t.id_admin_creador = u.id_usuario WHERE t.id_tarea = ?");
 $stmt_tarea_info->execute([$id_tarea]);
 $tarea_info = $stmt_tarea_info->fetch();
@@ -23,45 +34,77 @@ $tarea_info = $stmt_tarea_info->fetch();
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['agregar_comentario'])) {
         $comentario = trim($_POST['comentario']);
-        $nombre_archivo = null;
-        $ruta_archivo = null;
+        $nombres_archivos = [];
+        $rutas_archivos = [];
+        $errores_archivos = [];
+        $max_size = 5 * 1024 * 1024; // 5MB
 
-        if (isset($_FILES['archivo_comentario']) && $_FILES['archivo_comentario']['error'] == UPLOAD_ERR_OK) {
-            $archivo_tmp = $_FILES['archivo_comentario']['tmp_name'];
-            $nombre_original = basename($_FILES['archivo_comentario']['name']);
-            $extension = strtolower(pathinfo($nombre_original, PATHINFO_EXTENSION));
-            $permitidos = ['pdf', 'jpg', 'jpeg', 'png'];
+        if (isset($_FILES['archivos_comentario'])) {
+            foreach ($_FILES['archivos_comentario']['name'] as $key => $nombre_original) {
+                if ($_FILES['archivos_comentario']['error'][$key] == UPLOAD_ERR_OK) {
+                    $nombre_original = basename($nombre_original);
+                    $archivo_tmp = $_FILES['archivos_comentario']['tmp_name'][$key];
+                    $tamano_archivo = $_FILES['archivos_comentario']['size'][$key];
+                    $extension = strtolower(pathinfo($nombre_original, PATHINFO_EXTENSION));
+                    $permitidos = ['pdf', 'jpg', 'jpeg', 'png'];
 
-            if (in_array($extension, $permitidos)) {
-                $nombre_archivo = time() . '_' . $nombre_original;
-                $ruta_destino = __DIR__ . '/../uploads/' . $nombre_archivo;
-                if (move_uploaded_file($archivo_tmp, $ruta_destino)) {
-                    $ruta_archivo = 'uploads/' . $nombre_archivo;
-                } else {
-                    $error = "Error al mover el archivo subido.";
-                    $nombre_archivo = null;
+                    if (!in_array($extension, $permitidos)) {
+                        $errores_archivos[] = "Archivo '{$nombre_original}' no permitido. Solo se aceptan: PDF, JPG, JPEG, PNG.";
+                        continue;
+                    }
+
+                    if ($tamano_archivo > $max_size) {
+                        $errores_archivos[] = "El archivo '{$nombre_original}' excede el tamaño máximo de 5MB.";
+                        continue;
+                    }
+                    
+                    $nombre_archivo_nuevo = time() . '_' . $nombre_original;
+                    $ruta_destino = __DIR__ . '/../uploads/' . $nombre_archivo_nuevo;
+
+                    if (move_uploaded_file($archivo_tmp, $ruta_destino)) {
+                        $nombres_archivos[] = $nombre_archivo_nuevo;
+                        $rutas_archivos[] = 'uploads/' . $nombre_archivo_nuevo;
+                    } else {
+                        $errores_archivos[] = "Error al mover el archivo '{$nombre_original}'.";
+                    }
                 }
-            } else {
-                $error = "Tipo de archivo no permitido. Solo se aceptan PDF, JPG, JPEG y PNG.";
             }
         }
 
+        if (!empty($errores_archivos)) {
+            $_SESSION['user_error'] = implode('<br>', $errores_archivos);
+            header("Location: tarea.php?id=" . $id_tarea);
+            exit();
+        }
+
+        $nombre_archivo = !empty($nombres_archivos) ? implode(',', $nombres_archivos) : null;
+        $ruta_archivo = !empty($rutas_archivos) ? implode(',', $rutas_archivos) : null;
+
         if (empty($comentario) && empty($ruta_archivo)) {
-            $error = "Debes escribir un comentario o adjuntar un archivo.";
+            $_SESSION['user_error'] = "Debes escribir un comentario o adjuntar un archivo.";
+            header("Location: tarea.php?id=" . $id_tarea);
+            exit();
         }
         
-        if (!$error && (!empty($comentario) || !empty($ruta_archivo))) {
+        if (!empty($comentario) || !empty($ruta_archivo)) {
             $pdo->beginTransaction();
             try {
-                $stmt_insert = $pdo->prepare("INSERT INTO comentarios_tarea (id_tarea, id_usuario, comentario, nombre_archivo, ruta_archivo) VALUES (?, ?, ?, ?, ?)");
-                $stmt_insert->execute([$id_tarea, $id_miembro, $comentario, $nombre_archivo, $ruta_archivo]);
+                $fecha_comentario = date('Y-m-d H:i:s');
+                $stmt_insert = $pdo->prepare("INSERT INTO comentarios_tarea (id_tarea, id_usuario, comentario, nombre_archivo, ruta_archivo, fecha_comentario) VALUES (?, ?, ?, ?, ?, ?)");
+                $stmt_insert->execute([$id_tarea, $id_miembro, $comentario, $nombre_archivo, $ruta_archivo, $fecha_comentario]);
 
                 $pdo->commit();
                 notificar_evento_tarea($id_tarea, 'nuevo_comentario', $_SESSION['user_id']);
-                $mensaje = "Comentario enviado y notificado.";
+                
+                $_SESSION['user_message'] = "Comentario enviado y notificado.";
+                header("Location: tarea.php?id=" . $id_tarea);
+                exit();
+
             } catch (Exception $e) {
                 $pdo->rollBack();
-                $error = "No se pudo enviar el comentario: " . $e->getMessage();
+                $_SESSION['user_error'] = "No se pudo enviar el comentario: " . $e->getMessage();
+                header("Location: tarea.php?id=" . $id_tarea);
+                exit();
             }
         }
     }
@@ -138,21 +181,26 @@ include '../includes/header_miembro.php';
                                 <p><?php echo nl2br(e($comentario['comentario'])); ?></p>
                             <?php endif; ?>
                             <?php if (!empty($comentario['ruta_archivo'])): ?>
-                                <?php
-                                $ruta_archivo = e($comentario['ruta_archivo']);
-                                $nombre_archivo = e($comentario['nombre_archivo']);
-                                $extension = strtolower(pathinfo($ruta_archivo, PATHINFO_EXTENSION));
-                                $is_image = in_array($extension, ['jpg', 'jpeg', 'png', 'gif']);
-                                ?>
                                 <div class="attachment">
-                                    <p><strong>Archivo adjunto:</strong></p>
-                                    <a href="../<?php echo $ruta_archivo; ?>" target="_blank" class="resource-link">
-                                        <?php if ($is_image): ?>
-                                            <img src="../<?php echo $ruta_archivo; ?>" alt="<?php echo $nombre_archivo; ?>" style="max-width: 100px; max-height: 100px; border-radius: 5px; margin-top: 5px;">
-                                        <?php else: ?>
-                                            <i class="fas fa-file-alt"></i> <?php echo $nombre_archivo; ?>
-                                        <?php endif; ?>
-                                    </a>
+                                    <p><strong>Archivos adjuntos:</strong></p>
+                                    <?php
+                                    $rutas = explode(',', $comentario['ruta_archivo']);
+                                    $nombres = explode(',', $comentario['nombre_archivo']);
+                                    foreach ($rutas as $index => $ruta_archivo):
+                                        $ruta_archivo_esc = e($ruta_archivo);
+                                        $nombre_archivo_esc = e($nombres[$index] ?? 'Archivo');
+                                        $extension = strtolower(pathinfo($ruta_archivo_esc, PATHINFO_EXTENSION));
+                                        $is_image = in_array($extension, ['jpg', 'jpeg', 'png', 'gif']);
+                                    ?>
+                                        <a href="../<?php echo $ruta_archivo_esc; ?>" target="_blank" class="resource-link" style="display: block; margin-bottom: 5px;">
+                                            <?php if ($is_image): ?>
+                                                <img src="../<?php echo $ruta_archivo_esc; ?>" alt="<?php echo $nombre_archivo_esc; ?>" style="max-width: 100px; max-height: 100px; border-radius: 5px; vertical-align: middle; margin-right: 10px;">
+                                            <?php else: ?>
+                                                <i class="fas fa-file-alt" style="margin-right: 10px;"></i>
+                                            <?php endif; ?>
+                                            <span><?php echo $nombre_archivo_esc; ?></span>
+                                        </a>
+                                    <?php endforeach; ?>
                                 </div>
                             <?php endif; ?>
                             <div class="meta"><?php echo date('d/m/Y H:i', strtotime($comentario['fecha_comentario'])); ?></div>
@@ -168,8 +216,8 @@ include '../includes/header_miembro.php';
                     <textarea name="comentario" id="comentario" rows="4"></textarea>
                 </div>
                 <div class="form-group">
-                    <label for="archivo_comentario">Adjuntar archivo (opcional, PDF o imagen):</label>
-                    <input type="file" name="archivo_comentario" id="archivo_comentario" accept=".pdf,.jpg,.jpeg,.png">
+                    <label for="archivo_comentario">Adjuntar archivos (opcional, PDF o imagen, max 5MB por archivo):</label>
+                    <input type="file" name="archivos_comentario[]" id="archivo_comentario" accept=".pdf,.jpg,.jpeg,.png" multiple>
                 </div>
                 <button type="submit" name="agregar_comentario" class="btn">Enviar Comentario</button>
             </form>

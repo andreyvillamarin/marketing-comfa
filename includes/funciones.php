@@ -206,7 +206,17 @@ function notificar_evento_tarea($id_tarea, $evento, $id_usuario_accion) {
                 break;
         }
 
-        $cuerpo .= "<p>Puedes ver los detalles en la plataforma.</p>";
+        // --- INICIO: Añadir enlace a la tarea ---
+        $task_url = BASE_URL;
+        if ($destinatario['rol'] === 'miembro') {
+            $task_url .= '/miembro/tarea.php?id=' . $id_tarea;
+        } else { // admin o analista
+            $task_url .= '/admin/editar_tarea.php?id=' . $id_tarea;
+        }
+        $cuerpo .= '<p style="margin-top: 20px;"><a href="' . $task_url . '" style="display: inline-block; padding: 12px 20px; background-color: #007bff; color: #ffffff; text-decoration: none; border-radius: 5px; font-weight: bold;">Ver Tarea</a></p>';
+        // --- FIN: Añadir enlace a la tarea ---
+
+        $cuerpo .= "<p>Si el botón no funciona, copia y pega esta URL en tu navegador: " . $task_url . "</p>";
         enviar_email($destinatario['email'], $destinatario['nombre_completo'], $asunto, $cuerpo);
     }
 }

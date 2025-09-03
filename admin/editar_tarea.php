@@ -53,8 +53,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!empty($comentario)) {
             $pdo->beginTransaction();
             try {
-                $stmt_insert = $pdo->prepare("INSERT INTO comentarios_tarea (id_tarea, id_usuario, comentario) VALUES (?, ?, ?)");
-                $stmt_insert->execute([$id_tarea, $_SESSION['user_id'], $comentario]);
+                $fecha_comentario = date('Y-m-d H:i:s');
+                $stmt_insert = $pdo->prepare("INSERT INTO comentarios_tarea (id_tarea, id_usuario, comentario, fecha_comentario) VALUES (?, ?, ?, ?)");
+                $stmt_insert->execute([$id_tarea, $_SESSION['user_id'], $comentario, $fecha_comentario]);
 
                 $pdo->commit();
                 notificar_evento_tarea($id_tarea, 'nuevo_comentario', $_SESSION['user_id']);
@@ -92,6 +93,76 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             catch (PDOException $e) { $error = "Error al reabrir la tarea."; }
         } else { $error = "No tienes permiso para esta acción."; }
+    }
+    if (isset($_POST['cambiar_a_pendiente'])) {
+        if (in_array($_SESSION['user_rol'], ['admin', 'analista'])) {
+            $pdo->beginTransaction();
+            try {
+                $stmt_update = $pdo->prepare("UPDATE tareas SET estado = 'pendiente' WHERE id_tarea = ?");
+                $stmt_update->execute([$id_tarea]);
+                $rol_display = ($_SESSION['user_rol'] === 'admin') ? 'administrador' : 'analista';
+                $comentario_sistema = "La tarea ha sido devuelta al estado 'Pendiente' por un(a) {$rol_display}.";
+                $stmt_comentario = $pdo->prepare("INSERT INTO comentarios_tarea (id_tarea, id_usuario, comentario) VALUES (?, ?, ?)");
+                $stmt_comentario->execute([$id_tarea, $_SESSION['user_id'], $comentario_sistema]);
+                $pdo->commit();
+                notificar_evento_tarea($id_tarea, 'tarea_reabierta', $_SESSION['user_id']);
+                $mensaje = "La tarea ha sido devuelta a estado 'Pendiente'.";
+            } catch (Exception $e) {
+                $pdo->rollBack();
+                $error = "Error al cambiar el estado de la tarea: " . $e->getMessage();
+            }
+        } else {
+            $error = "No tienes permiso para esta acción.";
+        }
+    }
+    if (isset($_POST['eliminar_tarea'])) {
+        if ($_SESSION['user_rol'] === 'admin') {
+            $pdo->beginTransaction();
+            try {
+                // 1. Eliminar archivos de recursos de la tarea
+                $stmt_recursos = $pdo->prepare("SELECT ruta_archivo FROM recursos_tarea WHERE id_tarea = ?");
+                $stmt_recursos->execute([$id_tarea]);
+                $recursos = $stmt_recursos->fetchAll(PDO::FETCH_COLUMN);
+                foreach ($recursos as $ruta) {
+                    if (file_exists(__DIR__ . '/../' . $ruta)) {
+                        unlink(__DIR__ . '/../' . $ruta);
+                    }
+                }
+
+                // 2. Eliminar archivos de comentarios
+                $stmt_com_archivos = $pdo->prepare("SELECT ruta_archivo FROM comentarios_tarea WHERE id_tarea = ? AND ruta_archivo IS NOT NULL");
+                $stmt_com_archivos->execute([$id_tarea]);
+                $rutas_comentarios = $stmt_com_archivos->fetchAll(PDO::FETCH_COLUMN);
+                foreach ($rutas_comentarios as $ruta_csv) {
+                    $archivos = explode(',', $ruta_csv);
+                    foreach($archivos as $ruta) {
+                        if (file_exists(__DIR__ . '/../' . $ruta)) {
+                            unlink(__DIR__ . '/../' . $ruta);
+                        }
+                    }
+                }
+
+                // 3. Eliminar registros de la base de datos
+                $pdo->prepare("DELETE FROM comentarios_tarea WHERE id_tarea = ?")->execute([$id_tarea]);
+                $pdo->prepare("DELETE FROM recursos_tarea WHERE id_tarea = ?")->execute([$id_tarea]);
+                $pdo->prepare("DELETE FROM tareas_asignadas WHERE id_tarea = ?")->execute([$id_tarea]);
+                $pdo->prepare("DELETE FROM tareas WHERE id_tarea = ?")->execute([$id_tarea]);
+                
+                $pdo->commit();
+                
+                // Usar sesión para el mensaje porque vamos a redirigir
+                $_SESSION['user_message'] = "La tarea y todos sus datos asociados han sido eliminados permanentemente.";
+                header("Location: tareas.php");
+                exit();
+
+            } catch (Exception $e) {
+                $pdo->rollBack();
+                // Guardar el error en una variable para mostrarlo en la misma página
+                $error = "Error al eliminar la tarea: " . $e->getMessage();
+            }
+        } else {
+            $error = "No tienes permiso para esta acción.";
+        }
     }
 }
 if (isset($_GET['eliminar_recurso']) && in_array($_SESSION['user_rol'], ['admin', 'analista'])) {
@@ -137,13 +208,34 @@ include '../includes/header_admin.php';
         <div style="padding: 15px; border: 1px solid #ddd; border-radius: 5px; margin-bottom: 20px; background-color: #f9f9f9;">
             <h4 style="margin-top:0;">Acciones de Estado</h4>
             <p><strong>Estado Actual:</strong> <?php echo mostrar_estado_tarea($tarea); ?></p>
-            <?php if ($tarea['estado'] === 'pendiente' || $tarea['estado'] === 'finalizada_usuario'): ?>
-                <form action="editar_tarea.php?id=<?php echo $id_tarea; ?>" method="POST" onsubmit="return confirm('¿Seguro?');" style="margin:0;"><button type="submit" name="cerrar_tarea" class="btn btn-success"><i class="fas fa-check-double"></i> Confirmar y Completar</button></form>
-            <?php elseif ($tarea['estado'] === 'completada'): ?>
-                <form action="editar_tarea.php?id=<?php echo $id_tarea; ?>" method="POST" onsubmit="return confirm('¿Seguro?');" style="margin:0;"><button type="submit" name="reabrir_tarea" class="btn btn-secondary"><i class="fas fa-undo"></i> Reabrir Tarea</button></form>
-            <?php endif; ?>
+            <div class="state-actions">
+                <?php if ($tarea['estado'] === 'pendiente'): ?>
+                    <form action="editar_tarea.php?id=<?php echo $id_tarea; ?>" method="POST" onsubmit="return confirm('¿Seguro?');" style="display:inline-block; margin:0;"><button type="submit" name="cerrar_tarea" class="btn btn-success"><i class="fas fa-check-double"></i> Confirmar y Completar</button></form>
+                <?php elseif ($tarea['estado'] === 'finalizada_usuario'): ?>
+                    <form action="editar_tarea.php?id=<?php echo $id_tarea; ?>" method="POST" onsubmit="return confirm('¿Seguro?');" style="display:inline-block; margin:0;"><button type="submit" name="cerrar_tarea" class="btn btn-success"><i class="fas fa-check-double"></i> Confirmar y Completar</button></form>
+                    <form action="editar_tarea.php?id=<?php echo $id_tarea; ?>" method="POST" onsubmit="return confirm('¿Estás seguro de que quieres devolver esta tarea a pendiente?');" style="display:inline-block; margin:0; margin-left: 10px;"><button type="submit" name="cambiar_a_pendiente" class="btn btn-warning"><i class="fas fa-arrow-left"></i> Cambiar a Pendiente</button></form>
+                <?php elseif ($tarea['estado'] === 'completada'): ?>
+                    <form action="editar_tarea.php?id=<?php echo $id_tarea; ?>" method="POST" onsubmit="return confirm('¿Seguro?');" style="display:inline-block; margin:0;"><button type="submit" name="reabrir_tarea" class="btn btn-secondary"><i class="fas fa-undo"></i> Reabrir Tarea</button></form>
+                <?php endif; ?>
+                <hr style="margin: 15px 0;">
+                <form action="editar_tarea.php?id=<?php echo $id_tarea; ?>" method="POST" onsubmit="return confirm('¡ADVERTENCIA! Esta acción es irreversible. ¿Estás seguro de que quieres eliminar esta tarea y todos sus datos asociados?');" style="display:inline-block; margin:0;">
+                    <button type="submit" name="eliminar_tarea" class="btn btn-danger"><i class="fas fa-trash-can"></i> Eliminar Tarea</button>
+                </form>
+            </div>
         </div>
         <?php endif; ?>
+        
+        <?php // Bloque de acciones específico para Analistas ?>
+        <?php if (isset($_SESSION['user_rol']) && $_SESSION['user_rol'] === 'analista' && $tarea['estado'] === 'finalizada_usuario'): ?>
+        <div style="padding: 15px; border: 1px solid #ddd; border-radius: 5px; margin-bottom: 20px; background-color: #f9f9f9;">
+            <h4 style="margin-top:0;">Acciones de Estado</h4>
+            <p><strong>Estado Actual:</strong> <?php echo mostrar_estado_tarea($tarea); ?></p>
+            <form action="editar_tarea.php?id=<?php echo $id_tarea; ?>" method="POST" onsubmit="return confirm('¿Estás seguro de que quieres devolver esta tarea a pendiente?');" style="display:inline-block; margin:0;">
+                <button type="submit" name="cambiar_a_pendiente" class="btn btn-warning"><i class="fas fa-arrow-left"></i> Cambiar a Pendiente</button>
+            </form>
+        </div>
+        <?php endif; ?>
+
         <form action="editar_tarea.php?id=<?php echo $id_tarea; ?>" method="POST" enctype="multipart/form-data">
             <div class="form-group"><label>Nombre (*)</label><input type="text" name="nombre_tarea" value="<?php echo e($tarea['nombre_tarea']); ?>" required></div>
             <div class="form-group"><label>Fecha Creación</label><input type="text" value="<?php echo date('d/m/Y H:i', strtotime($tarea['fecha_creacion'])); ?>" disabled></div>
@@ -224,21 +316,26 @@ include '../includes/header_admin.php';
                             <p><?php echo nl2br(e($comentario['comentario'])); ?></p>
                         <?php endif; ?>
                         <?php if (!empty($comentario['ruta_archivo'])): ?>
-                            <?php
-                            $ruta_archivo = e($comentario['ruta_archivo']);
-                            $nombre_archivo = e($comentario['nombre_archivo']);
-                            $extension = strtolower(pathinfo($ruta_archivo, PATHINFO_EXTENSION));
-                            $is_image = in_array($extension, ['jpg', 'jpeg', 'png', 'gif']);
-                            ?>
                             <div class="attachment">
-                                <p><strong>Archivo adjunto:</strong></p>
-                                <a href="../<?php echo $ruta_archivo; ?>" target="_blank" class="resource-link">
-                                    <?php if ($is_image): ?>
-                                        <img src="../<?php echo $ruta_archivo; ?>" alt="<?php echo $nombre_archivo; ?>" style="max-width: 100px; max-height: 100px; border-radius: 5px; margin-top: 5px;">
-                                    <?php else: ?>
-                                        <i class="fas fa-file-alt"></i> <?php echo $nombre_archivo; ?>
-                                    <?php endif; ?>
-                                </a>
+                                <p><strong>Archivos adjuntos:</strong></p>
+                                <?php
+                                $rutas = explode(',', $comentario['ruta_archivo']);
+                                $nombres = explode(',', $comentario['nombre_archivo']);
+                                foreach ($rutas as $index => $ruta_archivo):
+                                    $ruta_archivo_esc = e($ruta_archivo);
+                                    $nombre_archivo_esc = e($nombres[$index] ?? 'Archivo');
+                                    $extension = strtolower(pathinfo($ruta_archivo_esc, PATHINFO_EXTENSION));
+                                    $is_image = in_array($extension, ['jpg', 'jpeg', 'png', 'gif']);
+                                ?>
+                                    <a href="../<?php echo $ruta_archivo_esc; ?>" target="_blank" class="resource-link" style="display: block; margin-bottom: 5px;">
+                                        <?php if ($is_image): ?>
+                                            <img src="../<?php echo $ruta_archivo_esc; ?>" alt="<?php echo $nombre_archivo_esc; ?>" style="max-width: 100px; max-height: 100px; border-radius: 5px; vertical-align: middle; margin-right: 10px;">
+                                        <?php else: ?>
+                                            <i class="fas fa-file-alt" style="margin-right: 10px;"></i>
+                                        <?php endif; ?>
+                                        <span><?php echo $nombre_archivo_esc; ?></span>
+                                    </a>
+                                <?php endforeach; ?>
                             </div>
                         <?php endif; ?>
                         <div class="meta"><?php echo date('d/m/Y H:i', strtotime($comentario['fecha_comentario'])); ?></div>

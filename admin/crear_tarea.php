@@ -26,8 +26,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     } else {
         $pdo->beginTransaction();
         try {
-            $stmt = $pdo->prepare("INSERT INTO tareas (nombre_tarea, descripcion, fecha_vencimiento, prioridad, id_admin_creador, estado, numero_piezas, negocio) VALUES (?, ?, ?, ?, ?, 'pendiente', ?, ?)");
-            $stmt->execute([$nombre_tarea, $descripcion, $fecha_vencimiento, $prioridad, $_SESSION['user_id'], $numero_piezas, $negocio]);
+            $fecha_creacion = date('Y-m-d H:i:s'); // Generar timestamp en PHP
+            $stmt = $pdo->prepare("INSERT INTO tareas (nombre_tarea, descripcion, fecha_vencimiento, prioridad, id_admin_creador, estado, numero_piezas, negocio, fecha_creacion) VALUES (?, ?, ?, ?, ?, 'pendiente', ?, ?, ?)");
+            $stmt->execute([$nombre_tarea, $descripcion, $fecha_vencimiento, $prioridad, $_SESSION['user_id'], $numero_piezas, $negocio, $fecha_creacion]);
             $id_tarea = $pdo->lastInsertId();
             $stmt_asignar = $pdo->prepare("INSERT INTO tareas_asignadas (id_tarea, id_usuario) VALUES (?, ?)");
             foreach ($miembros_asignados as $id_miembro) {

@@ -187,6 +187,7 @@ include '../includes/header_admin.php';
                     <option value="informe_tareas" <?php if ($tipo_informe == 'informe_tareas') echo 'selected'; ?>>Informe de Tareas</option>
                     <option value="piezas_miembro" <?php if ($tipo_informe == 'piezas_miembro') echo 'selected'; ?>>Número de piezas por miembro</option>
                     <option value="requerimientos_negocio" <?php if ($tipo_informe == 'requerimientos_negocio') echo 'selected'; ?>>Requerimientos por negocio</option>
+                    <option value="historico_general" <?php if ($tipo_informe == 'historico_general') echo 'selected'; ?>>Histórico General de Tareas</option>
                 </select>
             </div>
             <?php endif; ?>
@@ -224,6 +225,10 @@ include '../includes/header_admin.php';
     <?php elseif ($datos_encontrados && $tipo_informe === 'informe_tareas'): ?>
         <div style="border-top: 1px solid #eee; margin-top: 20px; padding-top: 20px; text-align: right;">
             <a href="generar_informe_tareas_pdf.php?id_miembro=<?php echo e($id_miembro_filtro); ?>&fecha_inicio=<?php echo e($fecha_inicio); ?>&fecha_fin=<?php echo e($fecha_fin); ?>" class="btn btn-success" target="_blank"><i class="fas fa-file-pdf"></i> Descargar Informe en PDF</a>
+        </div>
+    <?php elseif ($tipo_informe === 'historico_general' && $fecha_inicio && $fecha_fin): ?>
+        <div style="border-top: 1px solid #eee; margin-top: 20px; padding-top: 20px; text-align: right;">
+            <a href="generar_historico_general_pdf.php?fecha_inicio=<?php echo e($fecha_inicio); ?>&fecha_fin=<?php echo e($fecha_fin); ?>" class="btn btn-success" target="_blank"><i class="fas fa-file-pdf"></i> Descargar Histórico en PDF</a>
         </div>
     <?php endif; ?>
 </div>
