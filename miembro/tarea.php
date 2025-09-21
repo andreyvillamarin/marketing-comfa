@@ -89,7 +89,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!empty($comentario) || !empty($ruta_archivo)) {
             $pdo->beginTransaction();
             try {
-                $fecha_comentario = date('Y-m-d H:i:s');
+                $fecha_comentario = (new DateTime('now', new DateTimeZone('America/Bogota')))->format('Y-m-d H:i:s');
                 $stmt_insert = $pdo->prepare("INSERT INTO comentarios_tarea (id_tarea, id_usuario, comentario, nombre_archivo, ruta_archivo, fecha_comentario) VALUES (?, ?, ?, ?, ?, ?)");
                 $stmt_insert->execute([$id_tarea, $id_miembro, $comentario, $nombre_archivo, $ruta_archivo, $fecha_comentario]);
 
@@ -114,8 +114,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt_update = $pdo->prepare("UPDATE tareas SET estado = 'finalizada_usuario' WHERE id_tarea = ?");
             $stmt_update->execute([$id_tarea]);
 
-            $stmt_insert = $pdo->prepare("INSERT INTO comentarios_tarea (id_tarea, id_usuario, comentario) VALUES (?, ?, ?)");
-            $stmt_insert->execute([$id_tarea, $id_miembro, 'He Finalizado esta Tarea']);
+            $fecha_comentario = (new DateTime('now', new DateTimeZone('America/Bogota')))->format('Y-m-d H:i:s');
+            $stmt_insert = $pdo->prepare("INSERT INTO comentarios_tarea (id_tarea, id_usuario, comentario, fecha_comentario) VALUES (?, ?, ?, ?)");
+            $stmt_insert->execute([$id_tarea, $id_miembro, 'He Finalizado esta Tarea', $fecha_comentario]);
 
             $pdo->commit();
             notificar_evento_tarea($id_tarea, 'miembro_finaliza', $_SESSION['user_id']);
