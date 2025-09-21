@@ -127,7 +127,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } else {
                 $pdo->beginTransaction();
                 try {
-                    $fecha_comentario = date('Y-m-d H:i:s');
+                    $fecha_comentario = (new DateTime('now', new DateTimeZone('America/Bogota')))->format('Y-m-d H:i:s');
                     $stmt_insert = $pdo->prepare(
                         "INSERT INTO comentarios_tarea (id_tarea, id_usuario, comentario, nombre_archivo, ruta_archivo, fecha_comentario) 
                          VALUES (?, ?, ?, ?, ?, ?)"
@@ -181,8 +181,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt_update->execute([$id_tarea]);
                 $rol_display = ($_SESSION['user_rol'] === 'admin') ? 'administrador' : 'analista';
                 $comentario_sistema = "La tarea ha sido devuelta al estado 'Pendiente' por un(a) {$rol_display}.";
-                $stmt_comentario = $pdo->prepare("INSERT INTO comentarios_tarea (id_tarea, id_usuario, comentario) VALUES (?, ?, ?)");
-                $stmt_comentario->execute([$id_tarea, $_SESSION['user_id'], $comentario_sistema]);
+                $fecha_comentario = (new DateTime('now', new DateTimeZone('America/Bogota')))->format('Y-m-d H:i:s');
+                $stmt_comentario = $pdo->prepare("INSERT INTO comentarios_tarea (id_tarea, id_usuario, comentario, fecha_comentario) VALUES (?, ?, ?, ?)");
+                $stmt_comentario->execute([$id_tarea, $_SESSION['user_id'], $comentario_sistema, $fecha_comentario]);
                 $pdo->commit();
                 notificar_evento_tarea($id_tarea, 'tarea_devuelta_a_pendiente', $_SESSION['user_id']);
                 $mensaje = "La tarea ha sido devuelta a estado 'Pendiente'.";
