@@ -80,7 +80,7 @@ function mostrar_estado_tarea($tarea) {
     return "<span class='icon-text icon-estado-{$estado_clase}' {$color}><i class='fas {$estado_icono}'></i> {$estado_texto}</span>";
 }
 
-function notificar_evento_tarea($id_tarea, $evento, $id_usuario_accion) {
+function notificar_evento_tarea($id_tarea, $evento, $id_usuario_accion, $datos_adicionales = []) {
     global $pdo;
 
     // Obtener información de la tarea
@@ -143,6 +143,9 @@ function notificar_evento_tarea($id_tarea, $evento, $id_usuario_accion) {
             case 'tarea_reabierta':
                 if ($usuario['es_asignado']) $enviar = true;
                 break;
+            case 'tarea_devuelta_a_pendiente':
+                if ($usuario['rol'] == 'admin') $enviar = true;
+                break;
         }
         if ($enviar) {
             $notificaciones[$usuario['email']] = $usuario;
@@ -183,6 +186,10 @@ function notificar_evento_tarea($id_tarea, $evento, $id_usuario_accion) {
                 $asunto = "Tarea Actualizada: " . $tarea['nombre_tarea'];
                 $cuerpo = "<p>Hola ".e($destinatario['nombre_completo']).",</p>";
                 $cuerpo .= "<p>El usuario ".e($usuario_accion['nombre_completo'])." ha actualizado la tarea: <strong>".e($tarea['nombre_tarea'])."</strong>.</p>";
+                if (!empty($datos_adicionales['detalles'])) {
+                    $cuerpo .= "<p><strong>Detalles de la actualización:</strong></p>";
+                    $cuerpo .= $datos_adicionales['detalles'];
+                }
                 break;
             case 'nuevo_comentario':
                 $asunto = "Nuevo Comentario en: " . $tarea['nombre_tarea'];
@@ -203,6 +210,11 @@ function notificar_evento_tarea($id_tarea, $evento, $id_usuario_accion) {
                 $asunto = "Tarea Reabierta: " . $tarea['nombre_tarea'];
                 $cuerpo = "<p>Hola ".e($destinatario['nombre_completo']).",</p>";
                 $cuerpo .= "<p>Un administrador ha reabierto la tarea: <strong>".e($tarea['nombre_tarea'])."</strong>.</p>";
+                break;
+            case 'tarea_devuelta_a_pendiente':
+                $asunto = "Tarea Devuelta a Pendiente: " . e($tarea['nombre_tarea']);
+                $cuerpo = "<p>Hola ".e($destinatario['nombre_completo']).",</p>";
+                $cuerpo .= "<p>El ".e($usuario_accion['rol'])." ".e($usuario_accion['nombre_completo'])." ha cambiado el estado de la tarea <strong>".e($tarea['nombre_tarea'])."</strong> de 'Finalizada por Usuario' a 'Pendiente'.</p>";
                 break;
         }
 

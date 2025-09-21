@@ -21,19 +21,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (empty($nombre_tarea) || empty($fecha_vencimiento) || empty($prioridad)) {
             $error = 'El nombre, la fecha de vencimiento y la prioridad son obligatorios.';
         } else {
+            // Obtener datos originales para comparación
+            $stmt_tarea_original = $pdo->prepare("SELECT * FROM tareas WHERE id_tarea = ?");
+            $stmt_tarea_original->execute([$id_tarea]);
+            $tarea_original = $stmt_tarea_original->fetch(PDO::FETCH_ASSOC);
+
             $stmt_originales = $pdo->prepare("SELECT id_usuario FROM tareas_asignadas WHERE id_tarea = ?");
             $stmt_originales->execute([$id_tarea]);
             $ids_miembros_originales = $stmt_originales->fetchAll(PDO::FETCH_COLUMN);
+
             $pdo->beginTransaction();
             try {
                 $stmt_update = $pdo->prepare("UPDATE tareas SET nombre_tarea = ?, descripcion = ?, fecha_vencimiento = ?, prioridad = ?, numero_piezas = ?, negocio = ? WHERE id_tarea = ?");
                 $stmt_update->execute([$nombre_tarea, $descripcion, $fecha_vencimiento, $prioridad, $numero_piezas, $negocio, $id_tarea]);
+                
+                // Comparar y registrar cambios
+                $cambios = [];
+                if ($nombre_tarea !== $tarea_original['nombre_tarea']) { $cambios[] = "<li><b>Nombre:</b> de '".e($tarea_original['nombre_tarea'])."' a '".e($nombre_tarea)."'</li>"; }
+                if ($descripcion !== $tarea_original['descripcion']) { $cambios[] = "<li><b>Descripción:</b> fue modificada.</li>"; }
+                if (strtotime($fecha_vencimiento) != strtotime($tarea_original['fecha_vencimiento'])) { $cambios[] = "<li><b>Fecha Vencimiento:</b> de '".date('d/m/Y H:i', strtotime($tarea_original['fecha_vencimiento']))."' a '".date('d/m/Y H:i', strtotime($fecha_vencimiento))."'</li>"; }
+                if ($prioridad !== $tarea_original['prioridad']) { $cambios[] = "<li><b>Prioridad:</b> de '".e($tarea_original['prioridad'])."' a '".e($prioridad)."'</li>"; }
+                if ($numero_piezas != $tarea_original['numero_piezas']) { $cambios[] = "<li><b>Nº Piezas:</b> de '".e($tarea_original['numero_piezas'])."' a '".e($numero_piezas)."'</li>"; }
+                if ($negocio !== $tarea_original['negocio']) { $cambios[] = "<li><b>Negocio:</b> de '".e($tarea_original['negocio'])."' a '".e($negocio)."'</li>"; }
+
+                $ids_miembros_originales_sorted = $ids_miembros_originales; sort($ids_miembros_originales_sorted);
+                $miembros_asignados_nuevos_sorted = $miembros_asignados_nuevos; sort($miembros_asignados_nuevos_sorted);
+
+                if ($ids_miembros_originales_sorted != $miembros_asignados_nuevos_sorted) {
+                    $cambios[] = "<li><b>Miembros asignados</b> fueron modificados.</li>";
+                }
+
                 $stmt_delete_asignados = $pdo->prepare("DELETE FROM tareas_asignadas WHERE id_tarea = ?");
                 $stmt_delete_asignados->execute([$id_tarea]);
                 if (!empty($miembros_asignados_nuevos)) {
                     $stmt_insert_asignados = $pdo->prepare("INSERT INTO tareas_asignadas (id_tarea, id_usuario) VALUES (?, ?)");
                     foreach ($miembros_asignados_nuevos as $id_miembro) { $stmt_insert_asignados->execute([$id_tarea, $id_miembro]); }
                 }
+
                 if (!empty($_FILES['recursos']['name'][0])) {
                     $stmt_recurso = $pdo->prepare("INSERT INTO recursos_tarea (id_tarea, nombre_archivo, ruta_archivo) VALUES (?, ?, ?)");
                     $upload_dir = __DIR__ . '/../uploads/';
@@ -42,8 +66,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         if (move_uploaded_file($tmp_name, $target_file)) { $stmt_recurso->execute([$id_tarea, $name, 'uploads/' . $file_name]); }
                     }
                 }
+                
                 $pdo->commit();
-                notificar_evento_tarea($id_tarea, 'tarea_editada', $_SESSION['user_id']);
+                
+                $detalles_cambios = !empty($cambios) ? "<ul>" . implode('', $cambios) . "</ul>" : '';
+                notificar_evento_tarea($id_tarea, 'tarea_editada', $_SESSION['user_id'], ['detalles' => $detalles_cambios]);
+                
                 $mensaje = "¡Tarea actualizada exitosamente!";
             } catch (Exception $e) { $pdo->rollBack(); $error = "Error al actualizar la tarea: " . $e->getMessage(); }
         }
@@ -105,7 +133,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt_comentario = $pdo->prepare("INSERT INTO comentarios_tarea (id_tarea, id_usuario, comentario) VALUES (?, ?, ?)");
                 $stmt_comentario->execute([$id_tarea, $_SESSION['user_id'], $comentario_sistema]);
                 $pdo->commit();
-                notificar_evento_tarea($id_tarea, 'tarea_reabierta', $_SESSION['user_id']);
+                notificar_evento_tarea($id_tarea, 'tarea_devuelta_a_pendiente', $_SESSION['user_id']);
                 $mensaje = "La tarea ha sido devuelta a estado 'Pendiente'.";
             } catch (Exception $e) {
                 $pdo->rollBack();

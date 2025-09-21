@@ -18,9 +18,9 @@ define('BASE_URL', 'https://comfa.link/marketing');
 // Configuración de Email (Brevo SMTP)
 define('SMTP_HOST', '');
 define('SMTP_USER', '');      // Línea 18
-define('SMTP_PASS', '');
+define('SMTP_PASS', 'H');
 define('SMTP_PORT', 587);
-define('SMTP_SECURE', 'tls');
+define('SMTP_SECURE', '');
 define('EMAIL_FROM', '');
 define('EMAIL_FROM_NAME', 'Gestor de Tareas Comfamiliar');
 // ===================================================================
