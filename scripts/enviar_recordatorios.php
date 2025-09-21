@@ -28,6 +28,7 @@ try {
         JOIN usuarios u ON ta.id_usuario = u.id_usuario
         WHERE ta.notificacion_dias_antes IS NOT NULL
         AND t.estado != 'cerrada'
+        AND u.recibe_notificaciones = 1
     ");
 
     $asignaciones = $stmt->fetchAll();
