@@ -83,6 +83,16 @@ function mostrar_estado_tarea($tarea) {
 function notificar_evento_tarea($id_tarea, $evento, $id_usuario_accion, $datos_adicionales = []) {
     global $pdo;
 
+    // Primero, verificamos si la columna de notificaciones existe para no romper las consultas.
+    $columna_notificaciones_existe = false;
+    try {
+        $resultado = $pdo->query("SHOW COLUMNS FROM usuarios LIKE 'recibe_notificaciones'");
+        $columna_notificaciones_existe = $resultado->rowCount() > 0;
+    } catch (PDOException $e) {
+        error_log("Error al verificar la columna 'recibe_notificaciones' en notificar_evento_tarea: " . $e->getMessage());
+    }
+    $campo_notificaciones = $columna_notificaciones_existe ? ", u.recibe_notificaciones" : "";
+
     // Obtener información de la tarea
     $stmt_tarea = $pdo->prepare("SELECT * FROM tareas WHERE id_tarea = ?");
     $stmt_tarea->execute([$id_tarea]);
@@ -100,6 +110,7 @@ function notificar_evento_tarea($id_tarea, $evento, $id_usuario_accion, $datos_a
         SELECT u.id_usuario, u.nombre_completo, u.email, u.rol,
                CASE WHEN t.id_admin_creador = u.id_usuario THEN 1 ELSE 0 END as es_creador,
                CASE WHEN ta.id_usuario IS NOT NULL THEN 1 ELSE 0 END as es_asignado
+               {$campo_notificaciones}
         FROM usuarios u
         LEFT JOIN tareas t ON u.id_usuario = t.id_admin_creador AND t.id_tarea = :id_tarea1
         LEFT JOIN tareas_asignadas ta ON u.id_usuario = ta.id_usuario AND ta.id_tarea = :id_tarea2
@@ -110,7 +121,7 @@ function notificar_evento_tarea($id_tarea, $evento, $id_usuario_accion, $datos_a
     $usuarios_relacionados = $stmt_usuarios->fetchAll(PDO::FETCH_ASSOC);
 
     // Obtener todos los administradores
-    $stmt_admins = $pdo->query("SELECT id_usuario, nombre_completo, email, rol FROM usuarios WHERE rol = 'admin'");
+    $stmt_admins = $pdo->query("SELECT id_usuario, nombre_completo, email, rol{$campo_notificaciones} FROM usuarios WHERE rol = 'admin'");
     $administradores = $stmt_admins->fetchAll(PDO::FETCH_ASSOC);
 
     $notificaciones = [];
@@ -118,6 +129,11 @@ function notificar_evento_tarea($id_tarea, $evento, $id_usuario_accion, $datos_a
     // Lógica de notificación
     foreach ($usuarios_relacionados as $usuario) {
         if ($usuario['id_usuario'] == $id_usuario_accion) continue; // No notificar a quien hizo la acción
+
+        // Si la columna existe y el usuario no quiere notificaciones (y es admin), saltar.
+        if ($columna_notificaciones_existe && $usuario['rol'] === 'admin' && empty($usuario['recibe_notificaciones'])) {
+            continue;
+        }
 
         $enviar = false;
         switch ($evento) {
@@ -157,6 +173,11 @@ function notificar_evento_tarea($id_tarea, $evento, $id_usuario_accion, $datos_a
         foreach ($administradores as $admin) {
             if ($admin['id_usuario'] == $id_usuario_accion) continue;
             
+            // Si la columna existe y el admin no quiere notificaciones, saltar.
+            if ($columna_notificaciones_existe && empty($admin['recibe_notificaciones'])) {
+                continue;
+            }
+
             $enviar_admin = false;
             if ($usuario_accion['rol'] == 'analista' && ($evento == 'tarea_creada' || $evento == 'tarea_editada' || $evento == 'nuevo_comentario')) {
                 $enviar_admin = true;
