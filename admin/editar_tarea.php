@@ -78,19 +78,70 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     if (isset($_POST['agregar_comentario'])) {
         $comentario = trim($_POST['comentario']);
-        if (!empty($comentario)) {
-            $pdo->beginTransaction();
-            try {
-                $fecha_comentario = date('Y-m-d H:i:s');
-                $stmt_insert = $pdo->prepare("INSERT INTO comentarios_tarea (id_tarea, id_usuario, comentario, fecha_comentario) VALUES (?, ?, ?, ?)");
-                $stmt_insert->execute([$id_tarea, $_SESSION['user_id'], $comentario, $fecha_comentario]);
+        $nombres_archivos = [];
+        $rutas_archivos = [];
+        $errores_archivos = [];
+        $max_size = 5 * 1024 * 1024; // 5MB
 
-                $pdo->commit();
-                notificar_evento_tarea($id_tarea, 'nuevo_comentario', $_SESSION['user_id']);
-                $mensaje = "Comentario agregado y notificado.";
-            } catch (Exception $e) {
-                $pdo->rollBack();
-                $error = "Error al agregar el comentario: " . $e->getMessage();
+        if (isset($_FILES['archivos_comentario']) && !empty($_FILES['archivos_comentario']['name'][0])) {
+            foreach ($_FILES['archivos_comentario']['name'] as $key => $nombre_original) {
+                if ($_FILES['archivos_comentario']['error'][$key] == UPLOAD_ERR_OK) {
+                    $nombre_original = basename($nombre_original);
+                    $archivo_tmp = $_FILES['archivos_comentario']['tmp_name'][$key];
+                    $tamano_archivo = $_FILES['archivos_comentario']['size'][$key];
+                    $extension = strtolower(pathinfo($nombre_original, PATHINFO_EXTENSION));
+                    $permitidos = ['pdf', 'jpg', 'jpeg', 'png'];
+
+                    if (!in_array($extension, $permitidos)) {
+                        $errores_archivos[] = "Archivo '{$nombre_original}' no permitido. Solo se aceptan: PDF, JPG, JPEG, PNG.";
+                        continue;
+                    }
+
+                    if ($tamano_archivo > $max_size) {
+                        $errores_archivos[] = "El archivo '{$nombre_original}' excede el tamaño máximo de 5MB.";
+                        continue;
+                    }
+                    
+                    $nombre_archivo_nuevo = time() . '_' . $nombre_original;
+                    $ruta_destino = __DIR__ . '/../uploads/' . $nombre_archivo_nuevo;
+
+                    if (move_uploaded_file($archivo_tmp, $ruta_destino)) {
+                        $nombres_archivos[] = $nombre_archivo_nuevo;
+                        $rutas_archivos[] = 'uploads/' . $nombre_archivo_nuevo;
+                    } else {
+                        $errores_archivos[] = "Error al mover el archivo '{$nombre_original}'.";
+                    }
+                }
+            }
+        }
+
+        if (!empty($errores_archivos)) {
+            // Si hay errores de archivo, se guardan en $error para ser mostrados
+            $error = implode('<br>', $errores_archivos);
+        } else {
+            $nombre_archivo_db = !empty($nombres_archivos) ? implode(',', $nombres_archivos) : null;
+            $ruta_archivo_db = !empty($rutas_archivos) ? implode(',', $rutas_archivos) : null;
+
+            if (empty($comentario) && empty($ruta_archivo_db)) {
+                $error = "Debes escribir un comentario o adjuntar al menos un archivo.";
+            } else {
+                $pdo->beginTransaction();
+                try {
+                    $fecha_comentario = date('Y-m-d H:i:s');
+                    $stmt_insert = $pdo->prepare(
+                        "INSERT INTO comentarios_tarea (id_tarea, id_usuario, comentario, nombre_archivo, ruta_archivo, fecha_comentario) 
+                         VALUES (?, ?, ?, ?, ?, ?)"
+                    );
+                    $stmt_insert->execute([$id_tarea, $_SESSION['user_id'], $comentario, $nombre_archivo_db, $ruta_archivo_db, $fecha_comentario]);
+
+                    $pdo->commit();
+                    notificar_evento_tarea($id_tarea, 'nuevo_comentario', $_SESSION['user_id']);
+                    $mensaje = "Comentario enviado y notificado.";
+
+                } catch (Exception $e) {
+                    $pdo->rollBack();
+                    $error = "No se pudo enviar el comentario: " . $e->getMessage();
+                }
             }
         }
     }
@@ -373,9 +424,16 @@ include '../includes/header_admin.php';
         <?php else: ?>
             <p style="text-align: center; color: #777;">No hay comentarios.</p>
         <?php endif; ?>
-        <form action="editar_tarea.php?id=<?php echo $id_tarea; ?>" method="POST" style="margin-top:20px;">
-            <div class="form-group"><label>Añadir comentario:</label><textarea name="comentario" required rows="4"></textarea></div>
-            <button type="submit" name="agregar_comentario" class="btn">Enviar</button>
+        <form action="editar_tarea.php?id=<?php echo $id_tarea; ?>" method="POST" style="margin-top:20px;" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="comentario">Añadir Comentario:</label>
+                <textarea name="comentario" id="comentario" rows="4"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="archivos_comentario">Adjuntar archivos (opcional, PDF o imagen, max 5MB por archivo):</label>
+                <input type="file" name="archivos_comentario[]" id="archivos_comentario" accept=".pdf,.jpg,.jpeg,.png" multiple>
+            </div>
+            <button type="submit" name="agregar_comentario" class="btn">Enviar Comentario</button>
         </form>
     </div>
 </div>
