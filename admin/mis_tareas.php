@@ -27,8 +27,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['finalizar_tarea'])) {
 
             // 2. Insertar un comentario automático
             $comentario_sistema = 'La tarea ha sido marcada como finalizada por el analista.';
-            $stmt_insert = $pdo->prepare("INSERT INTO comentarios_tarea (id_tarea, id_usuario, comentario) VALUES (?, ?, ?)");
-            $stmt_insert->execute([$id_tarea, $id_usuario_actual, $comentario_sistema]);
+            $fecha_comentario = (new DateTime('now', new DateTimeZone('America/Bogota')))->format('Y-m-d H:i:s');
+            $stmt_insert = $pdo->prepare("INSERT INTO comentarios_tarea (id_tarea, id_usuario, comentario, fecha_comentario) VALUES (?, ?, ?, ?)");
+            $stmt_insert->execute([$id_tarea, $id_usuario_actual, $comentario_sistema, $fecha_comentario]);
 
             // 3. Notificar
             notificar_evento_tarea($id_tarea, 'miembro_finaliza', $id_usuario_actual);
