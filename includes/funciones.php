@@ -83,6 +83,11 @@ function mostrar_estado_tarea($tarea) {
 function notificar_evento_tarea($id_tarea, $evento, $id_usuario_accion, $datos_adicionales = []) {
     global $pdo;
 
+    // --- INICIO DE LA MODIFICACIÓN ---
+    // Se añade un flag para rastrear si todos los correos se envían correctamente.
+    $todos_enviados = true;
+    // --- FIN DE LA MODIFICACIÓN ---
+
     // Primero, verificamos si la columna de notificaciones existe para no romper las consultas.
     $columna_notificaciones_existe = false;
     try {
@@ -90,20 +95,21 @@ function notificar_evento_tarea($id_tarea, $evento, $id_usuario_accion, $datos_a
         $columna_notificaciones_existe = $resultado->rowCount() > 0;
     } catch (PDOException $e) {
         error_log("Error al verificar la columna 'recibe_notificaciones' en notificar_evento_tarea: " . $e->getMessage());
+        return false; // Si hay un error de DB, no se puede continuar.
     }
-    $campo_notificaciones = $columna_notificaciones_existe ? ", u.recibe_notificaciones" : "";
+    $campo_notificaciones = $columna_notificaciones_existe ? ", recibe_notificaciones" : "";
 
     // Obtener información de la tarea
     $stmt_tarea = $pdo->prepare("SELECT * FROM tareas WHERE id_tarea = ?");
     $stmt_tarea->execute([$id_tarea]);
     $tarea = $stmt_tarea->fetch();
-    if (!$tarea) return;
+    if (!$tarea) return false; // --- MODIFICACIÓN: Devolver false si la tarea no existe ---
 
     // Obtener información del usuario que realizó la acción
     $stmt_usuario_accion = $pdo->prepare("SELECT * FROM usuarios WHERE id_usuario = ?");
     $stmt_usuario_accion->execute([$id_usuario_accion]);
     $usuario_accion = $stmt_usuario_accion->fetch();
-    if (!$usuario_accion) return;
+    if (!$usuario_accion) return false; // --- MODIFICACIÓN: Devolver false si el usuario no existe ---
 
     // Obtener todos los usuarios relacionados con la tarea
     $stmt_usuarios = $pdo->prepare("
@@ -128,9 +134,8 @@ function notificar_evento_tarea($id_tarea, $evento, $id_usuario_accion, $datos_a
 
     // Lógica de notificación
     foreach ($usuarios_relacionados as $usuario) {
-        if ($usuario['id_usuario'] == $id_usuario_accion) continue; // No notificar a quien hizo la acción
+        if ($usuario['id_usuario'] == $id_usuario_accion) continue;
 
-        // Si la columna existe y el usuario no quiere notificaciones (y es admin), saltar.
         if ($columna_notificaciones_existe && $usuario['rol'] === 'admin' && empty($usuario['recibe_notificaciones'])) {
             continue;
         }
@@ -138,24 +143,16 @@ function notificar_evento_tarea($id_tarea, $evento, $id_usuario_accion, $datos_a
         $enviar = false;
         switch ($evento) {
             case 'tarea_creada':
-                if ($usuario['rol'] == 'admin' && $usuario_accion['rol'] == 'analista') $enviar = true;
-                if ($usuario['es_asignado']) $enviar = true;
-                break;
             case 'tarea_editada':
-                if ($usuario['rol'] == 'admin' && $usuario_accion['rol'] == 'analista') $enviar = true;
-                if ($usuario['es_asignado']) $enviar = true;
+                if ($usuario['es_asignado'] || ($usuario['rol'] == 'admin' && $usuario_accion['rol'] == 'analista')) $enviar = true;
                 break;
             case 'nuevo_comentario':
-                if ($usuario['rol'] == 'admin') $enviar = true;
-                if ($usuario['rol'] == 'analista' && ($usuario_accion['rol'] == 'miembro' || $usuario_accion['rol'] == 'admin' || ($usuario_accion['rol'] == 'analista' && $usuario['id_usuario'] != $id_usuario_accion))) $enviar = true;
-                if ($usuario['rol'] == 'miembro' && ($usuario_accion['rol'] == 'admin' || $usuario_accion['rol'] == 'analista')) $enviar = true;
+                if ($usuario['rol'] == 'admin' || $usuario['es_asignado']) $enviar = true;
                 break;
             case 'miembro_finaliza':
                 if ($usuario['rol'] == 'admin' || ($usuario['rol'] == 'analista' && $usuario['es_creador'])) $enviar = true;
                 break;
             case 'admin_completa':
-                 if ($usuario['es_asignado']) $enviar = true;
-                break;
             case 'tarea_reabierta':
                 if ($usuario['es_asignado']) $enviar = true;
                 break;
@@ -173,16 +170,12 @@ function notificar_evento_tarea($id_tarea, $evento, $id_usuario_accion, $datos_a
         foreach ($administradores as $admin) {
             if ($admin['id_usuario'] == $id_usuario_accion) continue;
             
-            // Si la columna existe y el admin no quiere notificaciones, saltar.
             if ($columna_notificaciones_existe && empty($admin['recibe_notificaciones'])) {
                 continue;
             }
 
             $enviar_admin = false;
-            if ($usuario_accion['rol'] == 'analista' && ($evento == 'tarea_creada' || $evento == 'tarea_editada' || $evento == 'nuevo_comentario')) {
-                $enviar_admin = true;
-            }
-            if ($usuario_accion['rol'] == 'miembro' && ($evento == 'nuevo_comentario' || $evento == 'miembro_finaliza')) {
+            if ($usuario_accion['rol'] != 'admin' && ($evento == 'tarea_creada' || $evento == 'tarea_editada' || $evento == 'nuevo_comentario' || $evento == 'miembro_finaliza')) {
                 $enviar_admin = true;
             }
 
@@ -192,6 +185,9 @@ function notificar_evento_tarea($id_tarea, $evento, $id_usuario_accion, $datos_a
         }
     }
 
+    if (empty($notificaciones)) {
+        return true; // No hay a quién notificar, se considera éxito.
+    }
 
     foreach ($notificaciones as $destinatario) {
         $asunto = '';
@@ -199,57 +195,67 @@ function notificar_evento_tarea($id_tarea, $evento, $id_usuario_accion, $datos_a
 
         switch ($evento) {
             case 'tarea_creada':
-                $asunto = "Nueva Tarea Creada: " . $tarea['nombre_tarea'];
+                $asunto = "Nueva Tarea Creada: " . e($tarea['nombre_tarea']);
                 $cuerpo = "<p>Hola ".e($destinatario['nombre_completo']).",</p>";
-                $cuerpo .= "<p>El usuario ".e($usuario_accion['nombre_completo'])." ha creado una nueva tarea: <strong>".e($tarea['nombre_tarea'])."</strong>.</p>";
+                $cuerpo .= "<p>El usuario ".e($usuario_accion['nombre_completo'])." ha creado una nueva tarea y te ha asignado: <strong>".e($tarea['nombre_tarea'])."</strong>.</p>";
                 break;
             case 'tarea_editada':
-                $asunto = "Tarea Actualizada: " . $tarea['nombre_tarea'];
+                $asunto = "Tarea Actualizada: " . e($tarea['nombre_tarea']);
                 $cuerpo = "<p>Hola ".e($destinatario['nombre_completo']).",</p>";
                 $cuerpo .= "<p>El usuario ".e($usuario_accion['nombre_completo'])." ha actualizado la tarea: <strong>".e($tarea['nombre_tarea'])."</strong>.</p>";
                 if (!empty($datos_adicionales['detalles'])) {
-                    $cuerpo .= "<p><strong>Detalles de la actualización:</strong></p>";
-                    $cuerpo .= $datos_adicionales['detalles'];
+                    $cuerpo .= "<strong>Detalles:</strong><br>" . $datos_adicionales['detalles'];
                 }
                 break;
             case 'nuevo_comentario':
-                $asunto = "Nuevo Comentario en: " . $tarea['nombre_tarea'];
+                $asunto = "Nuevo Comentario en: " . e($tarea['nombre_tarea']);
                 $cuerpo = "<p>Hola ".e($destinatario['nombre_completo']).",</p>";
                 $cuerpo .= "<p>".e($usuario_accion['nombre_completo'])." ha comentado en la tarea: <strong>".e($tarea['nombre_tarea'])."</strong>.</p>";
+                if (!empty($datos_adicionales['comentario'])) {
+                    $cuerpo .= "<p><strong>Comentario:</strong><br><em>".nl2br(e($datos_adicionales['comentario']))."</em></p>";
+                }
                 break;
             case 'miembro_finaliza':
-                $asunto = "Tarea Finalizada por Miembro: " . $tarea['nombre_tarea'];
+                $asunto = "Tarea Finalizada por Miembro: " . e($tarea['nombre_tarea']);
                 $cuerpo = "<p>Hola ".e($destinatario['nombre_completo']).",</p>";
-                $cuerpo .= "<p>El miembro ".e($usuario_accion['nombre_completo'])." ha marcado como finalizada la tarea: <strong>".e($tarea['nombre_tarea'])."</strong>.</p>";
+                $cuerpo .= "<p>El miembro ".e($usuario_accion['nombre_completo'])." ha marcado como finalizada la tarea: <strong>".e($tarea['nombre_tarea'])."</strong> y está pendiente de aprobación.</p>";
                 break;
             case 'admin_completa':
-                $asunto = "Tarea Completada: " . $tarea['nombre_tarea'];
+                $asunto = "Tarea Completada: " . e($tarea['nombre_tarea']);
                 $cuerpo = "<p>Hola ".e($destinatario['nombre_completo']).",</p>";
-                $cuerpo .= "<p>Un administrador ha completado la tarea: <strong>".e($tarea['nombre_tarea'])."</strong>.</p>";
+                $cuerpo .= "<p>Un administrador ha marcado como completada la tarea: <strong>".e($tarea['nombre_tarea'])."</strong>.</p>";
                 break;
             case 'tarea_reabierta':
-                $asunto = "Tarea Reabierta: " . $tarea['nombre_tarea'];
+                $asunto = "Tarea Reabierta: " . e($tarea['nombre_tarea']);
                 $cuerpo = "<p>Hola ".e($destinatario['nombre_completo']).",</p>";
                 $cuerpo .= "<p>Un administrador ha reabierto la tarea: <strong>".e($tarea['nombre_tarea'])."</strong>.</p>";
                 break;
             case 'tarea_devuelta_a_pendiente':
                 $asunto = "Tarea Devuelta a Pendiente: " . e($tarea['nombre_tarea']);
                 $cuerpo = "<p>Hola ".e($destinatario['nombre_completo']).",</p>";
-                $cuerpo .= "<p>El ".e($usuario_accion['rol'])." ".e($usuario_accion['nombre_completo'])." ha cambiado el estado de la tarea <strong>".e($tarea['nombre_tarea'])."</strong> de 'Finalizada por Usuario' a 'Pendiente'.</p>";
+                $cuerpo .= "<p>El ".e($usuario_accion['rol'])." ".e($usuario_accion['nombre_completo'])." ha cambiado el estado de la tarea <strong>".e($tarea['nombre_tarea'])."</strong> a 'Pendiente'.</p>";
                 break;
         }
 
-        // --- INICIO: Añadir enlace a la tarea ---
         $task_url = BASE_URL;
         if ($destinatario['rol'] === 'miembro') {
             $task_url .= '/miembro/tarea.php?id=' . $id_tarea;
-        } else { // admin o analista
+        } else {
             $task_url .= '/admin/editar_tarea.php?id=' . $id_tarea;
         }
         $cuerpo .= '<p style="margin-top: 20px;"><a href="' . $task_url . '" style="display: inline-block; padding: 12px 20px; background-color: #007bff; color: #ffffff; text-decoration: none; border-radius: 5px; font-weight: bold;">Ver Tarea</a></p>';
-        // --- FIN: Añadir enlace a la tarea ---
-
-        $cuerpo .= "<p>Si el botón no funciona, copia y pega esta URL en tu navegador: " . $task_url . "</p>";
-        enviar_email($destinatario['email'], $destinatario['nombre_completo'], $asunto, $cuerpo);
+        $cuerpo .= "<p style='font-size: 0.9em; color: #666;'>Si el botón no funciona, copia y pega esta URL en tu navegador: " . $task_url . "</p>";
+        
+        // --- INICIO DE LA MODIFICACIÓN ---
+        // Se comprueba el resultado de enviar_email y se actualiza el flag.
+        if (!enviar_email($destinatario['email'], $destinatario['nombre_completo'], $asunto, $cuerpo)) {
+            $todos_enviados = false;
+        }
+        // --- FIN DE LA MODIFICACIÓN ---
     }
+
+    // --- INICIO DE LA MODIFICACIÓN ---
+    // Se devuelve el estado final del envío de correos.
+    return $todos_enviados;
+    // --- FIN DE LA MODIFICACIÓN ---
 }

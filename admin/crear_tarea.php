@@ -24,16 +24,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (empty($nombre_tarea) || empty($fecha_vencimiento) || empty($prioridad) || empty($miembros_asignados)) {
         $error = 'Todos los campos marcados con * son obligatorios.';
     } else {
-        $pdo->beginTransaction();
+        $id_tarea = null;
         try {
-            $fecha_creacion = date('Y-m-d H:i:s'); // Generar timestamp en PHP
+            $pdo->beginTransaction();
+            $fecha_creacion = date('Y-m-d H:i:s');
             $stmt = $pdo->prepare("INSERT INTO tareas (nombre_tarea, descripcion, fecha_vencimiento, prioridad, id_admin_creador, estado, numero_piezas, negocio, fecha_creacion) VALUES (?, ?, ?, ?, ?, 'pendiente', ?, ?, ?)");
             $stmt->execute([$nombre_tarea, $descripcion, $fecha_vencimiento, $prioridad, $_SESSION['user_id'], $numero_piezas, $negocio, $fecha_creacion]);
             $id_tarea = $pdo->lastInsertId();
+
             $stmt_asignar = $pdo->prepare("INSERT INTO tareas_asignadas (id_tarea, id_usuario) VALUES (?, ?)");
             foreach ($miembros_asignados as $id_miembro) {
                 $stmt_asignar->execute([$id_tarea, $id_miembro]);
             }
+
             if (!empty($_FILES['recursos']['name'][0])) {
                 $stmt_recurso = $pdo->prepare("INSERT INTO recursos_tarea (id_tarea, nombre_archivo, ruta_archivo) VALUES (?, ?, ?)");
                 $upload_dir = __DIR__ . '/../uploads/';
@@ -47,12 +50,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 }
             }
             $pdo->commit();
-            
-            notificar_evento_tarea($id_tarea, 'tarea_creada', $_SESSION['user_id']);
-            $mensaje = "Tarea creada y notificada exitosamente.";
         } catch (Exception $e) {
-            $pdo->rollBack();
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
             $error = "Error al crear la tarea: " . $e->getMessage();
+            $id_tarea = null; // Asegurarse de que no se intente notificar
+        }
+
+        if ($id_tarea) {
+            if (notificar_evento_tarea($id_tarea, 'tarea_creada', $_SESSION['user_id'])) {
+                $mensaje = "Tarea creada y notificada exitosamente.";
+            } else {
+                $error = "La tarea fue creada, pero hubo un problema al enviar las notificaciones.";
+            }
         }
     }
 }

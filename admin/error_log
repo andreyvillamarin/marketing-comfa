@@ -22,3 +22,217 @@
 [18-Sep-2025 07:17:14 America/Bogota] PHP Notice:  session_start(): Ignoring session_start() because a session is already active (started from /home/comfalink/public_html/marketing/includes/config.php on line 34) in /home/comfalink/public_html/marketing/admin/generar_informe_pdf.php on line 14
 [18-Sep-2025 07:17:29 America/Bogota] PHP Notice:  session_start(): Ignoring session_start() because a session is already active (started from /home/comfalink/public_html/marketing/includes/config.php on line 34) in /home/comfalink/public_html/marketing/admin/generar_informe_pdf.php on line 14
 [18-Sep-2025 07:17:53 America/Bogota] PHP Notice:  session_start(): Ignoring session_start() because a session is already active (started from /home/comfalink/public_html/marketing/includes/config.php on line 34) in /home/comfalink/public_html/marketing/admin/generar_informe_pdf.php on line 14
+[22-Sep-2025 09:01:20 America/Bogota] PHP Fatal error:  Uncaught PDOException: There is no active transaction in /home/comfalink/public_html/marketing/admin/crear_tarea.php:54
+Stack trace:
+#0 /home/comfalink/public_html/marketing/admin/crear_tarea.php(54): PDO->rollBack()
+#1 {main}
+  thrown in /home/comfalink/public_html/marketing/admin/crear_tarea.php on line 54
+[22-Sep-2025 09:04:32 America/Bogota] PHP Fatal error:  Uncaught PDOException: There is no active transaction in /home/comfalink/public_html/marketing/admin/crear_tarea.php:54
+Stack trace:
+#0 /home/comfalink/public_html/marketing/admin/crear_tarea.php(54): PDO->rollBack()
+#1 {main}
+  thrown in /home/comfalink/public_html/marketing/admin/crear_tarea.php on line 54
+[22-Sep-2025 09:07:00 America/Bogota] PHP Fatal error:  Uncaught PDOException: There is no active transaction in /home/comfalink/public_html/marketing/admin/crear_tarea.php:54
+Stack trace:
+#0 /home/comfalink/public_html/marketing/admin/crear_tarea.php(54): PDO->rollBack()
+#1 {main}
+  thrown in /home/comfalink/public_html/marketing/admin/crear_tarea.php on line 54
+[22-Sep-2025 09:08:08 America/Bogota] PHP Fatal error:  Uncaught PDOException: There is no active transaction in /home/comfalink/public_html/marketing/admin/crear_tarea.php:54
+Stack trace:
+#0 /home/comfalink/public_html/marketing/admin/crear_tarea.php(54): PDO->rollBack()
+#1 {main}
+  thrown in /home/comfalink/public_html/marketing/admin/crear_tarea.php on line 54
+[22-Sep-2025 09:08:28 America/Bogota] PHP Fatal error:  Uncaught PDOException: There is no active transaction in /home/comfalink/public_html/marketing/admin/editar_tarea.php:158
+Stack trace:
+#0 /home/comfalink/public_html/marketing/admin/editar_tarea.php(158): PDO->rollBack()
+#1 {main}
+  thrown in /home/comfalink/public_html/marketing/admin/editar_tarea.php on line 158
+[22-Sep-2025 09:09:32 America/Bogota] PHP Fatal error:  Uncaught PDOException: There is no active transaction in /home/comfalink/public_html/marketing/admin/editar_tarea.php:142
+Stack trace:
+#0 /home/comfalink/public_html/marketing/admin/editar_tarea.php(142): PDO->rollBack()
+#1 {main}
+  thrown in /home/comfalink/public_html/marketing/admin/editar_tarea.php on line 142
+[22-Sep-2025 09:09:39 America/Bogota] PHP Fatal error:  Uncaught PDOException: There is no active transaction in /home/comfalink/public_html/marketing/admin/editar_tarea.php:142
+Stack trace:
+#0 /home/comfalink/public_html/marketing/admin/editar_tarea.php(142): PDO->rollBack()
+#1 {main}
+  thrown in /home/comfalink/public_html/marketing/admin/editar_tarea.php on line 142
+[22-Sep-2025 09:10:07 America/Bogota] PHP Fatal error:  Uncaught PDOException: There is no active transaction in /home/comfalink/public_html/marketing/admin/editar_tarea.php:76
+Stack trace:
+#0 /home/comfalink/public_html/marketing/admin/editar_tarea.php(76): PDO->rollBack()
+#1 {main}
+  thrown in /home/comfalink/public_html/marketing/admin/editar_tarea.php on line 76
+[22-Sep-2025 09:10:51 America/Bogota] PHP Fatal error:  Uncaught PDOException: There is no active transaction in /home/comfalink/public_html/marketing/admin/editar_tarea.php:142
+Stack trace:
+#0 /home/comfalink/public_html/marketing/admin/editar_tarea.php(142): PDO->rollBack()
+#1 {main}
+  thrown in /home/comfalink/public_html/marketing/admin/editar_tarea.php on line 142
+[22-Sep-2025 09:15:15 America/Bogota] PHP Fatal error:  Uncaught PDOException: There is no active transaction in /home/comfalink/public_html/marketing/admin/editar_tarea.php:158
+Stack trace:
+#0 /home/comfalink/public_html/marketing/admin/editar_tarea.php(158): PDO->rollBack()
+#1 {main}
+  thrown in /home/comfalink/public_html/marketing/admin/editar_tarea.php on line 158
+[22-Sep-2025 09:15:32 America/Bogota] PHP Fatal error:  Uncaught PDOException: There is no active transaction in /home/comfalink/public_html/marketing/admin/editar_tarea.php:158
+Stack trace:
+#0 /home/comfalink/public_html/marketing/admin/editar_tarea.php(158): PDO->rollBack()
+#1 {main}
+  thrown in /home/comfalink/public_html/marketing/admin/editar_tarea.php on line 158
+[22-Sep-2025 09:15:47 America/Bogota] PHP Fatal error:  Uncaught PDOException: There is no active transaction in /home/comfalink/public_html/marketing/admin/editar_tarea.php:158
+Stack trace:
+#0 /home/comfalink/public_html/marketing/admin/editar_tarea.php(158): PDO->rollBack()
+#1 {main}
+  thrown in /home/comfalink/public_html/marketing/admin/editar_tarea.php on line 158
+[22-Sep-2025 09:19:07 America/Bogota] Error al enviar notificaci贸n para la nueva tarea ID 197: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'u.recibe_notificaciones' in 'SELECT'
+[22-Sep-2025 09:19:46 America/Bogota] Error al enviar notificaci贸n de edici贸n para tarea ID 197: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'u.recibe_notificaciones' in 'SELECT'
+[22-Sep-2025 09:20:00 America/Bogota] Error al notificar nuevo comentario para tarea ID 197: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'u.recibe_notificaciones' in 'SELECT'
+[22-Sep-2025 09:24:47 America/Bogota] Error al enviar notificaci贸n para la nueva tarea ID 198: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'u.recibe_notificaciones' in 'SELECT'
+[22-Sep-2025 09:25:12 America/Bogota] Error al enviar notificaci贸n de edici贸n para tarea ID 198: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'u.recibe_notificaciones' in 'SELECT'
+[22-Sep-2025 09:28:57 America/Bogota] Error al enviar notificaci贸n de edici贸n para tarea ID 198: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'u.recibe_notificaciones' in 'SELECT'
+[22-Sep-2025 09:29:33 America/Bogota] Error al enviar notificaci贸n para la nueva tarea ID 199: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'u.recibe_notificaciones' in 'SELECT'
+[22-Sep-2025 09:30:00 America/Bogota] Error al notificar nuevo comentario para tarea ID 199: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'u.recibe_notificaciones' in 'SELECT'
+[22-Sep-2025 09:34:06 America/Bogota] Error al enviar notificaci贸n para la nueva tarea ID 200: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'u.recibe_notificaciones' in 'SELECT'
+[22-Sep-2025 09:41:57 America/Bogota] Error al enviar notificaci贸n de edici贸n para tarea ID 198: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'u.recibe_notificaciones' in 'SELECT'
+[22-Sep-2025 09:42:27 America/Bogota] Error al enviar notificaci贸n para la nueva tarea ID 201: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'u.recibe_notificaciones' in 'SELECT'
+[22-Sep-2025 10:12:11 America/Bogota] Error al notificar nuevo comentario para tarea ID 186: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'u.recibe_notificaciones' in 'SELECT'
+[22-Sep-2025 10:13:48 America/Bogota] Error al notificar nuevo comentario para tarea ID 153: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'u.recibe_notificaciones' in 'SELECT'
+[22-Sep-2025 10:31:00 America/Bogota] Error al notificar la completaci贸n de la tarea ID 159: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'u.recibe_notificaciones' in 'SELECT'
+[22-Sep-2025 10:31:27 America/Bogota] Error al notificar la completaci贸n de la tarea ID 35: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'u.recibe_notificaciones' in 'SELECT'
+[22-Sep-2025 10:31:30 America/Bogota] Error al notificar la completaci贸n de la tarea ID 160: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'u.recibe_notificaciones' in 'SELECT'
+[22-Sep-2025 10:31:34 America/Bogota] Error al notificar la completaci贸n de la tarea ID 158: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'u.recibe_notificaciones' in 'SELECT'
+[22-Sep-2025 10:31:37 America/Bogota] Error al notificar la completaci贸n de la tarea ID 170: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'u.recibe_notificaciones' in 'SELECT'
+[22-Sep-2025 10:31:39 America/Bogota] Error al notificar la completaci贸n de la tarea ID 169: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'u.recibe_notificaciones' in 'SELECT'
+[22-Sep-2025 10:31:41 America/Bogota] Error al notificar la completaci贸n de la tarea ID 153: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'u.recibe_notificaciones' in 'SELECT'
+[22-Sep-2025 10:32:30 America/Bogota] Error al notificar la completaci贸n de la tarea ID 155: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'u.recibe_notificaciones' in 'SELECT'
+[22-Sep-2025 10:32:33 America/Bogota] Error al notificar la completaci贸n de la tarea ID 156: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'u.recibe_notificaciones' in 'SELECT'
+[22-Sep-2025 10:32:36 America/Bogota] Error al notificar la completaci贸n de la tarea ID 157: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'u.recibe_notificaciones' in 'SELECT'
+[22-Sep-2025 10:32:38 America/Bogota] Error al notificar la completaci贸n de la tarea ID 161: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'u.recibe_notificaciones' in 'SELECT'
+[22-Sep-2025 10:32:40 America/Bogota] Error al notificar la completaci贸n de la tarea ID 163: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'u.recibe_notificaciones' in 'SELECT'
+[22-Sep-2025 10:33:23 America/Bogota] Error al notificar la completaci贸n de la tarea ID 162: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'u.recibe_notificaciones' in 'SELECT'
+[22-Sep-2025 10:33:26 America/Bogota] Error al notificar la completaci贸n de la tarea ID 164: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'u.recibe_notificaciones' in 'SELECT'
+[22-Sep-2025 10:33:28 America/Bogota] Error al notificar la completaci贸n de la tarea ID 165: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'u.recibe_notificaciones' in 'SELECT'
+[22-Sep-2025 10:33:30 America/Bogota] Error al notificar la completaci贸n de la tarea ID 166: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'u.recibe_notificaciones' in 'SELECT'
+[22-Sep-2025 10:33:33 America/Bogota] Error al notificar la completaci贸n de la tarea ID 167: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'u.recibe_notificaciones' in 'SELECT'
+[22-Sep-2025 10:44:15 America/Bogota] Error al notificar la completaci贸n de la tarea ID 168: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'u.recibe_notificaciones' in 'SELECT'
+[22-Sep-2025 10:50:59 America/Bogota] Error al enviar notificaci贸n de edici贸n para tarea ID 201: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'u.recibe_notificaciones' in 'SELECT'
+[22-Sep-2025 11:19:13 America/Bogota] Error al enviar notificaci贸n de edici贸n para tarea ID 197: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'u.recibe_notificaciones' in 'SELECT'
+[22-Sep-2025 11:44:36 America/Bogota] PHP Fatal error:  Uncaught PDOException: There is no active transaction in /home/comfalink/public_html/marketing/admin/crear_tarea.php:60
+Stack trace:
+#0 /home/comfalink/public_html/marketing/admin/crear_tarea.php(60): PDO->rollBack()
+#1 {main}
+  thrown in /home/comfalink/public_html/marketing/admin/crear_tarea.php on line 60
+[22-Sep-2025 11:45:02 America/Bogota] PHP Fatal error:  Uncaught PDOException: There is no active transaction in /home/comfalink/public_html/marketing/admin/editar_tarea.php:80
+Stack trace:
+#0 /home/comfalink/public_html/marketing/admin/editar_tarea.php(80): PDO->rollBack()
+#1 {main}
+  thrown in /home/comfalink/public_html/marketing/admin/editar_tarea.php on line 80
+[22-Sep-2025 11:45:13 America/Bogota] PHP Fatal error:  Uncaught PDOException: There is no active transaction in /home/comfalink/public_html/marketing/admin/editar_tarea.php:150
+Stack trace:
+#0 /home/comfalink/public_html/marketing/admin/editar_tarea.php(150): PDO->rollBack()
+#1 {main}
+  thrown in /home/comfalink/public_html/marketing/admin/editar_tarea.php on line 150
+[22-Sep-2025 11:59:28 America/Bogota] PHP Fatal error:  Uncaught PDOException: There is no active transaction in /home/comfalink/public_html/marketing/admin/editar_tarea.php:171
+Stack trace:
+#0 /home/comfalink/public_html/marketing/admin/editar_tarea.php(171): PDO->rollBack()
+#1 {main}
+  thrown in /home/comfalink/public_html/marketing/admin/editar_tarea.php on line 171
+[22-Sep-2025 11:59:31 America/Bogota] PHP Fatal error:  Uncaught PDOException: There is no active transaction in /home/comfalink/public_html/marketing/admin/editar_tarea.php:171
+Stack trace:
+#0 /home/comfalink/public_html/marketing/admin/editar_tarea.php(171): PDO->rollBack()
+#1 {main}
+  thrown in /home/comfalink/public_html/marketing/admin/editar_tarea.php on line 171
+[22-Sep-2025 12:01:13 America/Bogota] PHP Fatal error:  Uncaught PDOException: There is no active transaction in /home/comfalink/public_html/marketing/admin/editar_tarea.php:171
+Stack trace:
+#0 /home/comfalink/public_html/marketing/admin/editar_tarea.php(171): PDO->rollBack()
+#1 {main}
+  thrown in /home/comfalink/public_html/marketing/admin/editar_tarea.php on line 171
+[22-Sep-2025 12:01:27 America/Bogota] PHP Fatal error:  Uncaught PDOException: There is no active transaction in /home/comfalink/public_html/marketing/admin/editar_tarea.php:171
+Stack trace:
+#0 /home/comfalink/public_html/marketing/admin/editar_tarea.php(171): PDO->rollBack()
+#1 {main}
+  thrown in /home/comfalink/public_html/marketing/admin/editar_tarea.php on line 171
+[22-Sep-2025 12:01:38 America/Bogota] PHP Fatal error:  Uncaught PDOException: There is no active transaction in /home/comfalink/public_html/marketing/admin/editar_tarea.php:171
+Stack trace:
+#0 /home/comfalink/public_html/marketing/admin/editar_tarea.php(171): PDO->rollBack()
+#1 {main}
+  thrown in /home/comfalink/public_html/marketing/admin/editar_tarea.php on line 171
+[22-Sep-2025 12:01:46 America/Bogota] PHP Fatal error:  Uncaught PDOException: There is no active transaction in /home/comfalink/public_html/marketing/admin/editar_tarea.php:171
+Stack trace:
+#0 /home/comfalink/public_html/marketing/admin/editar_tarea.php(171): PDO->rollBack()
+#1 {main}
+  thrown in /home/comfalink/public_html/marketing/admin/editar_tarea.php on line 171
+[22-Sep-2025 12:08:35 America/Bogota] PHP Fatal error:  Uncaught PDOException: There is no active transaction in /home/comfalink/public_html/marketing/admin/editar_tarea.php:171
+Stack trace:
+#0 /home/comfalink/public_html/marketing/admin/editar_tarea.php(171): PDO->rollBack()
+#1 {main}
+  thrown in /home/comfalink/public_html/marketing/admin/editar_tarea.php on line 171
+[22-Sep-2025 12:11:06 America/Bogota] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'u.recibe_notificaciones' in 'SELECT' in /home/comfalink/public_html/marketing/includes/funciones.php:130
+Stack trace:
+#0 /home/comfalink/public_html/marketing/includes/funciones.php(130): PDO->query()
+#1 /home/comfalink/public_html/marketing/admin/editar_tarea.php(79): notificar_evento_tarea()
+#2 {main}
+  thrown in /home/comfalink/public_html/marketing/includes/funciones.php on line 130
+[22-Sep-2025 12:11:29 America/Bogota] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'u.recibe_notificaciones' in 'SELECT' in /home/comfalink/public_html/marketing/includes/funciones.php:130
+Stack trace:
+#0 /home/comfalink/public_html/marketing/includes/funciones.php(130): PDO->query()
+#1 /home/comfalink/public_html/marketing/admin/editar_tarea.php(79): notificar_evento_tarea()
+#2 {main}
+  thrown in /home/comfalink/public_html/marketing/includes/funciones.php on line 130
+[22-Sep-2025 12:12:06 America/Bogota] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'u.recibe_notificaciones' in 'SELECT' in /home/comfalink/public_html/marketing/includes/funciones.php:130
+Stack trace:
+#0 /home/comfalink/public_html/marketing/includes/funciones.php(130): PDO->query()
+#1 /home/comfalink/public_html/marketing/admin/crear_tarea.php(62): notificar_evento_tarea()
+#2 {main}
+  thrown in /home/comfalink/public_html/marketing/includes/funciones.php on line 130
+[22-Sep-2025 12:12:23 America/Bogota] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'u.recibe_notificaciones' in 'SELECT' in /home/comfalink/public_html/marketing/includes/funciones.php:130
+Stack trace:
+#0 /home/comfalink/public_html/marketing/includes/funciones.php(130): PDO->query()
+#1 /home/comfalink/public_html/marketing/admin/editar_tarea.php(152): notificar_evento_tarea()
+#2 {main}
+  thrown in /home/comfalink/public_html/marketing/includes/funciones.php on line 130
+[02-Oct-2025 15:21:00 America/Bogota] Error de conexión a la DB: SQLSTATE[08004] [1040] Too many connections
+[02-Oct-2025 15:30:51 America/Bogota] Error de conexión a la DB: SQLSTATE[08004] [1040] Too many connections
+[02-Oct-2025 15:30:53 America/Bogota] Error de conexión a la DB: SQLSTATE[08004] [1040] Too many connections
+[02-Oct-2025 15:30:54 America/Bogota] Error de conexión a la DB: SQLSTATE[08004] [1040] Too many connections
+[02-Oct-2025 15:30:54 America/Bogota] Error de conexión a la DB: SQLSTATE[08004] [1040] Too many connections
+[02-Oct-2025 15:30:55 America/Bogota] Error de conexión a la DB: SQLSTATE[08004] [1040] Too many connections
+[02-Oct-2025 15:30:57 America/Bogota] Error de conexión a la DB: SQLSTATE[08004] [1040] Too many connections
+[02-Oct-2025 15:30:58 America/Bogota] Error de conexión a la DB: SQLSTATE[08004] [1040] Too many connections
+[02-Oct-2025 15:36:24 America/Bogota] Error de conexión a la DB: SQLSTATE[08004] [1040] Too many connections
+[02-Oct-2025 15:36:38 America/Bogota] Error de conexión a la DB: SQLSTATE[08004] [1040] Too many connections
+[02-Oct-2025 15:36:58 America/Bogota] Error de conexión a la DB: SQLSTATE[08004] [1040] Too many connections
+[02-Oct-2025 15:37:03 America/Bogota] Error de conexión a la DB: SQLSTATE[08004] [1040] Too many connections
+[02-Oct-2025 15:37:16 America/Bogota] Error de conexión a la DB: SQLSTATE[08004] [1040] Too many connections
+[02-Oct-2025 15:42:19 America/Bogota] Error de conexión a la DB: SQLSTATE[08004] [1040] Too many connections
+[02-Oct-2025 15:42:30 America/Bogota] Error de conexión a la DB: SQLSTATE[08004] [1040] Too many connections
+[02-Oct-2025 15:52:36 America/Bogota] Error de conexión a la DB: SQLSTATE[08004] [1040] Too many connections
+[02-Oct-2025 15:52:38 America/Bogota] Error de conexión a la DB: SQLSTATE[08004] [1040] Too many connections
+[02-Oct-2025 15:52:40 America/Bogota] Error de conexión a la DB: SQLSTATE[08004] [1040] Too many connections
+[02-Oct-2025 15:52:40 America/Bogota] Error de conexión a la DB: SQLSTATE[08004] [1040] Too many connections
+[02-Oct-2025 15:52:41 America/Bogota] Error de conexión a la DB: SQLSTATE[08004] [1040] Too many connections
+[02-Oct-2025 15:52:42 America/Bogota] Error de conexión a la DB: SQLSTATE[08004] [1040] Too many connections
+[02-Oct-2025 15:52:42 America/Bogota] Error de conexión a la DB: SQLSTATE[08004] [1040] Too many connections
+[02-Oct-2025 15:52:43 America/Bogota] Error de conexión a la DB: SQLSTATE[08004] [1040] Too many connections
+[02-Oct-2025 15:52:44 America/Bogota] Error de conexión a la DB: SQLSTATE[08004] [1040] Too many connections
+[02-Oct-2025 15:52:44 America/Bogota] Error de conexión a la DB: SQLSTATE[08004] [1040] Too many connections
+[02-Oct-2025 15:52:45 America/Bogota] Error de conexión a la DB: SQLSTATE[08004] [1040] Too many connections
+[02-Oct-2025 15:52:45 America/Bogota] Error de conexión a la DB: SQLSTATE[08004] [1040] Too many connections
+[02-Oct-2025 15:52:45 America/Bogota] Error de conexión a la DB: SQLSTATE[08004] [1040] Too many connections
+[02-Oct-2025 15:52:47 America/Bogota] Error de conexión a la DB: SQLSTATE[08004] [1040] Too many connections
+[02-Oct-2025 15:52:48 America/Bogota] Error de conexión a la DB: SQLSTATE[08004] [1040] Too many connections
+[02-Oct-2025 15:52:48 America/Bogota] Error de conexión a la DB: SQLSTATE[08004] [1040] Too many connections
+[02-Oct-2025 15:52:49 America/Bogota] Error de conexión a la DB: SQLSTATE[08004] [1040] Too many connections
+[02-Oct-2025 15:52:49 America/Bogota] Error de conexión a la DB: SQLSTATE[08004] [1040] Too many connections
+[02-Oct-2025 15:52:50 America/Bogota] Error de conexión a la DB: SQLSTATE[08004] [1040] Too many connections
+[02-Oct-2025 15:52:50 America/Bogota] Error de conexión a la DB: SQLSTATE[08004] [1040] Too many connections
+[02-Oct-2025 15:52:51 America/Bogota] Error de conexión a la DB: SQLSTATE[08004] [1040] Too many connections
+[02-Oct-2025 15:52:51 America/Bogota] Error de conexión a la DB: SQLSTATE[08004] [1040] Too many connections
+[02-Oct-2025 15:52:52 America/Bogota] Error de conexión a la DB: SQLSTATE[08004] [1040] Too many connections
+[02-Oct-2025 15:52:52 America/Bogota] Error de conexión a la DB: SQLSTATE[08004] [1040] Too many connections
+[02-Oct-2025 15:52:52 America/Bogota] Error de conexión a la DB: SQLSTATE[08004] [1040] Too many connections
+[02-Oct-2025 15:52:53 America/Bogota] Error de conexión a la DB: SQLSTATE[08004] [1040] Too many connections
+[02-Oct-2025 15:52:55 America/Bogota] Error de conexión a la DB: SQLSTATE[08004] [1040] Too many connections
+[02-Oct-2025 15:52:58 America/Bogota] Error de conexión a la DB: SQLSTATE[08004] [1040] Too many connections
+[02-Oct-2025 15:52:58 America/Bogota] Error de conexión a la DB: SQLSTATE[08004] [1040] Too many connections
+[02-Oct-2025 15:53:22 America/Bogota] Error de conexión a la DB: SQLSTATE[08004] [1040] Too many connections
+[02-Oct-2025 15:53:25 America/Bogota] Error de conexión a la DB: SQLSTATE[08004] [1040] Too many connections
+[02-Oct-2025 15:53:33 America/Bogota] Error de conexión a la DB: SQLSTATE[08004] [1040] Too many connections

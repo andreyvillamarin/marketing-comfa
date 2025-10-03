@@ -87,44 +87,54 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         if (!empty($comentario) || !empty($ruta_archivo)) {
-            $pdo->beginTransaction();
+            $comentario_exitoso = false;
             try {
+                $pdo->beginTransaction();
                 $fecha_comentario = (new DateTime('now', new DateTimeZone('America/Bogota')))->format('Y-m-d H:i:s');
                 $stmt_insert = $pdo->prepare("INSERT INTO comentarios_tarea (id_tarea, id_usuario, comentario, nombre_archivo, ruta_archivo, fecha_comentario) VALUES (?, ?, ?, ?, ?, ?)");
                 $stmt_insert->execute([$id_tarea, $id_miembro, $comentario, $nombre_archivo, $ruta_archivo, $fecha_comentario]);
-
                 $pdo->commit();
-                notificar_evento_tarea($id_tarea, 'nuevo_comentario', $_SESSION['user_id']);
-                
-                $_SESSION['user_message'] = "Comentario enviado y notificado.";
-                header("Location: tarea.php?id=" . $id_tarea);
-                exit();
-
+                $comentario_exitoso = true;
             } catch (Exception $e) {
-                $pdo->rollBack();
+                if ($pdo->inTransaction()) { $pdo->rollBack(); }
                 $_SESSION['user_error'] = "No se pudo enviar el comentario: " . $e->getMessage();
-                header("Location: tarea.php?id=" . $id_tarea);
-                exit();
             }
+
+            if ($comentario_exitoso) {
+                if (notificar_evento_tarea($id_tarea, 'nuevo_comentario', $_SESSION['user_id'], ['comentario' => $comentario])) {
+                    $_SESSION['user_message'] = "Comentario enviado y notificado exitosamente.";
+                } else {
+                    $_SESSION['user_message'] = "El comentario fue agregado, pero hubo un problema al enviar las notificaciones.";
+                }
+            }
+            header("Location: tarea.php?id=" . $id_tarea);
+            exit();
         }
     }
     if (isset($_POST['notificar_finalizacion'])) {
-        $pdo->beginTransaction();
+        $finalizacion_exitosa = false;
         try {
+            $pdo->beginTransaction();
             $stmt_update = $pdo->prepare("UPDATE tareas SET estado = 'finalizada_usuario' WHERE id_tarea = ?");
             $stmt_update->execute([$id_tarea]);
 
             $fecha_comentario = (new DateTime('now', new DateTimeZone('America/Bogota')))->format('Y-m-d H:i:s');
             $stmt_insert = $pdo->prepare("INSERT INTO comentarios_tarea (id_tarea, id_usuario, comentario, fecha_comentario) VALUES (?, ?, ?, ?)");
             $stmt_insert->execute([$id_tarea, $id_miembro, 'He Finalizado esta Tarea', $fecha_comentario]);
-
             $pdo->commit();
-            notificar_evento_tarea($id_tarea, 'miembro_finaliza', $_SESSION['user_id']);
-            $mensaje = "¡Excelente! Se ha notificado al creador de la tarea.";
-            $tarea_info['estado'] = 'finalizada_usuario';
+            $finalizacion_exitosa = true;
         } catch(Exception $e) {
-            $pdo->rollBack();
+            if ($pdo->inTransaction()) { $pdo->rollBack(); }
             $error = "No se pudo notificar la finalización: " . $e->getMessage();
+        }
+
+        if ($finalizacion_exitosa) {
+            if (notificar_evento_tarea($id_tarea, 'miembro_finaliza', $_SESSION['user_id'])) {
+                $mensaje = "¡Excelente! Se ha notificado al creador de la tarea.";
+            } else {
+                $error = "La tarea fue marcada como finalizada, pero hubo un problema al enviar la notificación.";
+            }
+            $tarea_info['estado'] = 'finalizada_usuario';
         }
     }
     if (isset($_POST['configurar_recordatorio'])) {

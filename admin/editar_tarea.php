@@ -30,13 +30,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt_originales->execute([$id_tarea]);
             $ids_miembros_originales = $stmt_originales->fetchAll(PDO::FETCH_COLUMN);
 
-            $pdo->beginTransaction();
+            $actualizacion_exitosa = false;
+            $cambios = [];
             try {
+                $pdo->beginTransaction();
                 $stmt_update = $pdo->prepare("UPDATE tareas SET nombre_tarea = ?, descripcion = ?, fecha_vencimiento = ?, prioridad = ?, numero_piezas = ?, negocio = ? WHERE id_tarea = ?");
                 $stmt_update->execute([$nombre_tarea, $descripcion, $fecha_vencimiento, $prioridad, $numero_piezas, $negocio, $id_tarea]);
                 
-                // Comparar y registrar cambios
-                $cambios = [];
                 if ($nombre_tarea !== $tarea_original['nombre_tarea']) { $cambios[] = "<li><b>Nombre:</b> de '".e($tarea_original['nombre_tarea'])."' a '".e($nombre_tarea)."'</li>"; }
                 if ($descripcion !== $tarea_original['descripcion']) { $cambios[] = "<li><b>Descripción:</b> fue modificada.</li>"; }
                 if (strtotime($fecha_vencimiento) != strtotime($tarea_original['fecha_vencimiento'])) { $cambios[] = "<li><b>Fecha Vencimiento:</b> de '".date('d/m/Y H:i', strtotime($tarea_original['fecha_vencimiento']))."' a '".date('d/m/Y H:i', strtotime($fecha_vencimiento))."'</li>"; }
@@ -68,12 +68,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
                 
                 $pdo->commit();
-                
+                $actualizacion_exitosa = true;
+            } catch (Exception $e) {
+                if ($pdo->inTransaction()) { $pdo->rollBack(); }
+                $error = "Error al actualizar la tarea: " . $e->getMessage();
+            }
+
+            if ($actualizacion_exitosa) {
                 $detalles_cambios = !empty($cambios) ? "<ul>" . implode('', $cambios) . "</ul>" : '';
-                notificar_evento_tarea($id_tarea, 'tarea_editada', $_SESSION['user_id'], ['detalles' => $detalles_cambios]);
-                
-                $mensaje = "¡Tarea actualizada exitosamente!";
-            } catch (Exception $e) { $pdo->rollBack(); $error = "Error al actualizar la tarea: " . $e->getMessage(); }
+                if (notificar_evento_tarea($id_tarea, 'tarea_editada', $_SESSION['user_id'], ['detalles' => $detalles_cambios])) {
+                    $mensaje = "¡Tarea actualizada exitosamente!";
+                } else {
+                    $error = "La tarea fue actualizada, pero hubo un problema al enviar las notificaciones.";
+                }
+            }
         }
     }
     if (isset($_POST['agregar_comentario'])) {
@@ -116,7 +124,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         if (!empty($errores_archivos)) {
-            // Si hay errores de archivo, se guardan en $error para ser mostrados
             $error = implode('<br>', $errores_archivos);
         } else {
             $nombre_archivo_db = !empty($nombres_archivos) ? implode(',', $nombres_archivos) : null;
@@ -125,38 +132,52 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (empty($comentario) && empty($ruta_archivo_db)) {
                 $error = "Debes escribir un comentario o adjuntar al menos un archivo.";
             } else {
-                $pdo->beginTransaction();
+                $comentario_exitoso = false;
                 try {
+                    $pdo->beginTransaction();
                     $fecha_comentario = (new DateTime('now', new DateTimeZone('America/Bogota')))->format('Y-m-d H:i:s');
                     $stmt_insert = $pdo->prepare(
                         "INSERT INTO comentarios_tarea (id_tarea, id_usuario, comentario, nombre_archivo, ruta_archivo, fecha_comentario) 
                          VALUES (?, ?, ?, ?, ?, ?)"
                     );
                     $stmt_insert->execute([$id_tarea, $_SESSION['user_id'], $comentario, $nombre_archivo_db, $ruta_archivo_db, $fecha_comentario]);
-
                     $pdo->commit();
-                    notificar_evento_tarea($id_tarea, 'nuevo_comentario', $_SESSION['user_id']);
-                    $mensaje = "Comentario enviado y notificado.";
-
+                    $comentario_exitoso = true;
                 } catch (Exception $e) {
-                    $pdo->rollBack();
+                    if ($pdo->inTransaction()) { $pdo->rollBack(); }
                     $error = "No se pudo enviar el comentario: " . $e->getMessage();
+                }
+
+                if ($comentario_exitoso) {
+                    if (notificar_evento_tarea($id_tarea, 'nuevo_comentario', $_SESSION['user_id'], ['comentario' => $comentario])) {
+                        $mensaje = "Comentario enviado y notificado.";
+                    } else {
+                        $error = "El comentario fue agregado, pero hubo un problema al enviar las notificaciones.";
+                    }
                 }
             }
         }
     }
     if (isset($_POST['cerrar_tarea'])) {
         if ($_SESSION['user_rol'] === 'admin') {
-            $pdo->beginTransaction();
+            $cerrado_exitoso = false;
             try {
+                $pdo->beginTransaction();
                 $stmt_update = $pdo->prepare("UPDATE tareas SET estado = 'completada' WHERE id_tarea = ?");
                 $stmt_update->execute([$id_tarea]);
                 $pdo->commit();
-                notificar_evento_tarea($id_tarea, 'admin_completa', $_SESSION['user_id']);
-                $mensaje = "¡Tarea marcada como completada y notificaciones enviadas!";
+                $cerrado_exitoso = true;
             } catch (Exception $e) {
-                $pdo->rollBack();
+                if ($pdo->inTransaction()) { $pdo->rollBack(); }
                 $error = "Error al completar la tarea: " . $e->getMessage();
+            }
+
+            if ($cerrado_exitoso) {
+                if (notificar_evento_tarea($id_tarea, 'admin_completa', $_SESSION['user_id'])) {
+                    $mensaje = "¡Tarea marcada como completada y notificaciones enviadas!";
+                } else {
+                    $error = "La tarea fue marcada como completada, pero hubo un problema al enviar las notificaciones.";
+                }
             }
         } else {
             $error = "No tienes permiso para esta acción.";
@@ -164,19 +185,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     if (isset($_POST['reabrir_tarea'])) {
         if ($_SESSION['user_rol'] === 'admin') {
+            $reabrir_exitoso = false;
             try {
                 $stmt = $pdo->prepare("UPDATE tareas SET estado = 'pendiente' WHERE id_tarea = ?");
                 $stmt->execute([$id_tarea]);
-                notificar_evento_tarea($id_tarea, 'tarea_reabierta', $_SESSION['user_id']);
-                $mensaje = "La tarea ha sido reabierta.";
+                $reabrir_exitoso = true;
             }
             catch (PDOException $e) { $error = "Error al reabrir la tarea."; }
+            
+            if ($reabrir_exitoso) {
+                if (notificar_evento_tarea($id_tarea, 'tarea_reabierta', $_SESSION['user_id'])) {
+                    $mensaje = "La tarea ha sido reabierta.";
+                } else {
+                    $error = "La tarea ha sido reabierta, pero hubo un problema al enviar las notificaciones.";
+                }
+            }
         } else { $error = "No tienes permiso para esta acción."; }
     }
     if (isset($_POST['cambiar_a_pendiente'])) {
         if (in_array($_SESSION['user_rol'], ['admin', 'analista'])) {
-            $pdo->beginTransaction();
+            $cambio_exitoso = false;
             try {
+                $pdo->beginTransaction();
                 $stmt_update = $pdo->prepare("UPDATE tareas SET estado = 'pendiente' WHERE id_tarea = ?");
                 $stmt_update->execute([$id_tarea]);
                 $rol_display = ($_SESSION['user_rol'] === 'admin') ? 'administrador' : 'analista';
@@ -185,11 +215,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt_comentario = $pdo->prepare("INSERT INTO comentarios_tarea (id_tarea, id_usuario, comentario, fecha_comentario) VALUES (?, ?, ?, ?)");
                 $stmt_comentario->execute([$id_tarea, $_SESSION['user_id'], $comentario_sistema, $fecha_comentario]);
                 $pdo->commit();
-                notificar_evento_tarea($id_tarea, 'tarea_devuelta_a_pendiente', $_SESSION['user_id']);
-                $mensaje = "La tarea ha sido devuelta a estado 'Pendiente'.";
+                $cambio_exitoso = true;
             } catch (Exception $e) {
-                $pdo->rollBack();
+                if ($pdo->inTransaction()) { $pdo->rollBack(); }
                 $error = "Error al cambiar el estado de la tarea: " . $e->getMessage();
+            }
+
+            if ($cambio_exitoso) {
+                if (notificar_evento_tarea($id_tarea, 'tarea_devuelta_a_pendiente', $_SESSION['user_id'])) {
+                    $mensaje = "La tarea ha sido devuelta a estado 'Pendiente'.";
+                } else {
+                    $error = "La tarea ha sido devuelta a 'Pendiente', pero hubo un problema al enviar las notificaciones.";
+                }
             }
         } else {
             $error = "No tienes permiso para esta acción.";
