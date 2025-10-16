@@ -17,9 +17,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $prioridad = $_POST['prioridad'];
         $miembros_asignados_nuevos = isset($_POST['miembros_asignados']) ? $_POST['miembros_asignados'] : [];
         $numero_piezas = isset($_POST['numero_piezas']) && $_POST['numero_piezas'] !== '' ? (int)$_POST['numero_piezas'] : 0;
+        $tipo_trabajo = trim($_POST['tipo_trabajo']);
         $negocio = isset($_POST['negocio']) ? trim($_POST['negocio']) : '';
-        if (empty($nombre_tarea) || empty($fecha_vencimiento) || empty($prioridad)) {
-            $error = 'El nombre, la fecha de vencimiento y la prioridad son obligatorios.';
+        if (empty($nombre_tarea) || empty($fecha_vencimiento) || empty($prioridad) || empty($tipo_trabajo)) {
+            $error = 'El nombre, la fecha de vencimiento, la prioridad y el tipo de trabajo son obligatorios.';
         } else {
             // Obtener datos originales para comparación
             $stmt_tarea_original = $pdo->prepare("SELECT * FROM tareas WHERE id_tarea = ?");
@@ -34,14 +35,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $cambios = [];
             try {
                 $pdo->beginTransaction();
-                $stmt_update = $pdo->prepare("UPDATE tareas SET nombre_tarea = ?, descripcion = ?, fecha_vencimiento = ?, prioridad = ?, numero_piezas = ?, negocio = ? WHERE id_tarea = ?");
-                $stmt_update->execute([$nombre_tarea, $descripcion, $fecha_vencimiento, $prioridad, $numero_piezas, $negocio, $id_tarea]);
+                $stmt_update = $pdo->prepare("UPDATE tareas SET nombre_tarea = ?, descripcion = ?, fecha_vencimiento = ?, prioridad = ?, numero_piezas = ?, tipo_trabajo = ?, negocio = ? WHERE id_tarea = ?");
+                $stmt_update->execute([$nombre_tarea, $descripcion, $fecha_vencimiento, $prioridad, $numero_piezas, $tipo_trabajo, $negocio, $id_tarea]);
                 
                 if ($nombre_tarea !== $tarea_original['nombre_tarea']) { $cambios[] = "<li><b>Nombre:</b> de '".e($tarea_original['nombre_tarea'])."' a '".e($nombre_tarea)."'</li>"; }
                 if ($descripcion !== $tarea_original['descripcion']) { $cambios[] = "<li><b>Descripción:</b> fue modificada.</li>"; }
                 if (strtotime($fecha_vencimiento) != strtotime($tarea_original['fecha_vencimiento'])) { $cambios[] = "<li><b>Fecha Vencimiento:</b> de '".date('d/m/Y H:i', strtotime($tarea_original['fecha_vencimiento']))."' a '".date('d/m/Y H:i', strtotime($fecha_vencimiento))."'</li>"; }
                 if ($prioridad !== $tarea_original['prioridad']) { $cambios[] = "<li><b>Prioridad:</b> de '".e($tarea_original['prioridad'])."' a '".e($prioridad)."'</li>"; }
                 if ($numero_piezas != $tarea_original['numero_piezas']) { $cambios[] = "<li><b>Nº Piezas:</b> de '".e($tarea_original['numero_piezas'])."' a '".e($numero_piezas)."'</li>"; }
+                if ($tipo_trabajo !== $tarea_original['tipo_trabajo']) { $cambios[] = "<li><b>Tipo de Trabajo:</b> de '".e($tarea_original['tipo_trabajo'])."' a '".e($tipo_trabajo)."'</li>"; }
                 if ($negocio !== $tarea_original['negocio']) { $cambios[] = "<li><b>Negocio:</b> de '".e($tarea_original['negocio'])."' a '".e($negocio)."'</li>"; }
 
                 $ids_miembros_originales_sorted = $ids_miembros_originales; sort($ids_miembros_originales_sorted);
@@ -362,6 +364,14 @@ include '../includes/header_admin.php';
             <div class="form-group">
                 <label for="numero_piezas">Número de piezas</label>
                 <input type="number" id="numero_piezas" name="numero_piezas" value="<?php echo e($tarea['numero_piezas'] ?? 0); ?>" min="0">
+            </div>
+            <div class="form-group">
+                <label for="tipo_trabajo">Tipo de Trabajo (*)</label>
+                <select id="tipo_trabajo" name="tipo_trabajo" required>
+                    <option value="">Seleccione el tipo de trabajo</option>
+                    <option value="Digital" <?php if(isset($tarea['tipo_trabajo']) && $tarea['tipo_trabajo'] == 'Digital') echo 'selected'; ?>>Digital</option>
+                    <option value="Impreso" <?php if(isset($tarea['tipo_trabajo']) && $tarea['tipo_trabajo'] == 'Impreso') echo 'selected'; ?>>Impreso</option>
+                </select>
             </div>
             <div class="form-group">
                 <label for="negocio">Negocio</label>

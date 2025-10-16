@@ -114,6 +114,7 @@ if (empty($tareas)) {
         echo '<td>' . e($tarea['creador']) . '</td>';
         echo '<td>' . e($tarea['miembros_asignados'] ?? 'N/A') . '</td>';
         echo '<td>' . e($tarea['negocio'] ?? 'N/A') . '</td>';
+        echo '<td>' . e($tarea['tipo_trabajo'] ?? 'N/A') . '</td>';
         echo '<td>' . date('d/m/Y H:i', strtotime($tarea['fecha_creacion'])) . '</td>';
         echo '<td>' . date('d/m/Y H:i', strtotime($tarea['fecha_vencimiento'])) . '</td>';
         echo '<td>' . mostrar_estado_tarea($tarea) . '</td>';

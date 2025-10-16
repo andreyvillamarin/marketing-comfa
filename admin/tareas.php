@@ -101,6 +101,7 @@ include '../includes/header_admin.php';
                     <th>Creador</th>
                     <th>Miembro Asignado</th>
                     <th>Negocio</th>
+                    <th>Tipo de Trabajo</th>
                     <th>Fecha Creación</th>
                     <th>Fecha Vencimiento</th>
                     <th>Estado</th>
@@ -119,6 +120,7 @@ include '../includes/header_admin.php';
                             <td><?php echo e($tarea['creador']); ?></td>
                             <td><?php echo e($tarea['miembros_asignados'] ?? 'N/A'); ?></td>
                             <td><?php echo e($tarea['negocio'] ?? 'N/A'); ?></td>
+                            <td><?php echo e($tarea['tipo_trabajo'] ?? 'N/A'); ?></td>
                             <td><?php echo date('d/m/Y H:i', strtotime($tarea['fecha_creacion'])); ?></td>
                             <td><?php echo date('d/m/Y H:i', strtotime($tarea['fecha_vencimiento'])); ?></td>
                             <td>

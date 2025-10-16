@@ -19,17 +19,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $prioridad = $_POST['prioridad'] ?? '';
     $miembros_asignados = $_POST['miembros_asignados'] ?? [];
     $numero_piezas = isset($_POST['numero_piezas']) && $_POST['numero_piezas'] !== '' ? (int)$_POST['numero_piezas'] : 0;
+    $tipo_trabajo = trim($_POST['tipo_trabajo'] ?? '');
     $negocio = isset($_POST['negocio']) ? trim($_POST['negocio']) : '';
 
-    if (empty($nombre_tarea) || empty($fecha_vencimiento) || empty($prioridad) || empty($miembros_asignados)) {
+    if (empty($nombre_tarea) || empty($fecha_vencimiento) || empty($prioridad) || empty($miembros_asignados) || empty($tipo_trabajo)) {
         $error = 'Todos los campos marcados con * son obligatorios.';
     } else {
         $id_tarea = null;
         try {
             $pdo->beginTransaction();
             $fecha_creacion = date('Y-m-d H:i:s');
-            $stmt = $pdo->prepare("INSERT INTO tareas (nombre_tarea, descripcion, fecha_vencimiento, prioridad, id_admin_creador, estado, numero_piezas, negocio, fecha_creacion) VALUES (?, ?, ?, ?, ?, 'pendiente', ?, ?, ?)");
-            $stmt->execute([$nombre_tarea, $descripcion, $fecha_vencimiento, $prioridad, $_SESSION['user_id'], $numero_piezas, $negocio, $fecha_creacion]);
+            $stmt = $pdo->prepare("INSERT INTO tareas (nombre_tarea, descripcion, fecha_vencimiento, prioridad, id_admin_creador, estado, numero_piezas, tipo_trabajo, negocio, fecha_creacion) VALUES (?, ?, ?, ?, ?, 'pendiente', ?, ?, ?, ?)");
+            $stmt->execute([$nombre_tarea, $descripcion, $fecha_vencimiento, $prioridad, $_SESSION['user_id'], $numero_piezas, $tipo_trabajo, $negocio, $fecha_creacion]);
             $id_tarea = $pdo->lastInsertId();
 
             $stmt_asignar = $pdo->prepare("INSERT INTO tareas_asignadas (id_tarea, id_usuario) VALUES (?, ?)");
@@ -102,6 +103,14 @@ include '../includes/header_admin.php';
         <div class="form-group">
             <label for="numero_piezas">Número de piezas</label>
             <input type="number" id="numero_piezas" name="numero_piezas" value="0" min="0">
+        </div>
+        <div class="form-group">
+            <label for="tipo_trabajo">Tipo de Trabajo (*)</label>
+            <select id="tipo_trabajo" name="tipo_trabajo" required>
+                <option value="">Seleccione el tipo de trabajo</option>
+                <option value="Digital">Digital</option>
+                <option value="Impreso">Impreso</option>
+            </select>
         </div>
         <div class="form-group">
             <label for="negocio">Negocio</label>

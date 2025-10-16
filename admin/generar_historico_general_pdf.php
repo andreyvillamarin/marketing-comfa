@@ -51,21 +51,36 @@ $resumen_creador = [];
 $resumen_miembro = [];
 $resumen_negocio = [];
 
+function inicializar_resumen() {
+    return ['total_tareas' => 0, 'total_piezas' => 0, 'Digital' => 0, 'Impreso' => 0];
+}
+
 foreach ($tareas as $tarea) {
+    $piezas = (int)$tarea['numero_piezas'];
+    $tipo_trabajo = $tarea['tipo_trabajo'];
+
     // Resumen por creador
     $creador = $tarea['creador'];
     if (!isset($resumen_creador[$creador])) {
-        $resumen_creador[$creador] = 0;
+        $resumen_creador[$creador] = inicializar_resumen();
     }
-    $resumen_creador[$creador]++;
+    $resumen_creador[$creador]['total_tareas']++;
+    $resumen_creador[$creador]['total_piezas'] += $piezas;
+    if (in_array($tipo_trabajo, ['Digital', 'Impreso'])) {
+        $resumen_creador[$creador][$tipo_trabajo] += $piezas;
+    }
 
     // Resumen por negocio
     if (!empty($tarea['negocio'])) {
         $negocio = $tarea['negocio'];
         if (!isset($resumen_negocio[$negocio])) {
-            $resumen_negocio[$negocio] = 0;
+            $resumen_negocio[$negocio] = inicializar_resumen();
         }
-        $resumen_negocio[$negocio]++;
+        $resumen_negocio[$negocio]['total_tareas']++;
+        $resumen_negocio[$negocio]['total_piezas'] += $piezas;
+        if (in_array($tipo_trabajo, ['Digital', 'Impreso'])) {
+            $resumen_negocio[$negocio][$tipo_trabajo] += $piezas;
+        }
     }
 
     // Resumen por miembro asignado
@@ -75,9 +90,13 @@ foreach ($tareas as $tarea) {
             $miembro = trim($miembro);
             if (!empty($miembro)) {
                 if (!isset($resumen_miembro[$miembro])) {
-                    $resumen_miembro[$miembro] = 0;
+                    $resumen_miembro[$miembro] = inicializar_resumen();
                 }
-                $resumen_miembro[$miembro]++;
+                $resumen_miembro[$miembro]['total_tareas']++;
+                $resumen_miembro[$miembro]['total_piezas'] += $piezas;
+                if (in_array($tipo_trabajo, ['Digital', 'Impreso'])) {
+                    $resumen_miembro[$miembro][$tipo_trabajo] += $piezas;
+                }
             }
         }
     }
@@ -142,30 +161,29 @@ $html .= '
     </table>
     <div class="summary-container" style="margin-top: 30px; page-break-inside: avoid;">
         <h2>Resúmenes del Periodo</h2>
-        <table style="width: 45%; float: left; margin-right: 5%;">
-            <thead><tr><th>Resumen por Creador</th><th>Tareas Creadas</th></tr></thead>
+        <table style="width: 100%; margin-bottom: 20px;">
+            <thead><tr><th>Resumen por Creador</th><th>Tareas Creadas</th><th>Nº Piezas</th><th>Digital</th><th>Impreso</th></tr></thead>
             <tbody>';
-foreach ($resumen_creador as $nombre => $total) {
-    $html .= '<tr><td>' . e($nombre) . '</td><td>' . $total . '</td></tr>';
+foreach ($resumen_creador as $nombre => $data) {
+    $html .= '<tr><td>' . e($nombre) . '</td><td>' . $data['total_tareas'] . '</td><td>' . $data['total_piezas'] . '</td><td>' . $data['Digital'] . '</td><td>' . $data['Impreso'] . '</td></tr>';
 }
 $html .= '
             </tbody>
         </table>
-        <table style="width: 45%; float: left;">
-            <thead><tr><th>Resumen por Miembro Asignado</th><th>Tareas Asignadas</th></tr></thead>
+        <table style="width: 100%; margin-bottom: 20px;">
+            <thead><tr><th>Resumen por Miembro Asignado</th><th>Tareas Asignadas</th><th>Nº Piezas</th><th>Digital</th><th>Impreso</th></tr></thead>
             <tbody>';
-foreach ($resumen_miembro as $nombre => $total) {
-    $html .= '<tr><td>' . e($nombre) . '</td><td>' . $total . '</td></tr>';
+foreach ($resumen_miembro as $nombre => $data) {
+    $html .= '<tr><td>' . e($nombre) . '</td><td>' . $data['total_tareas'] . '</td><td>' . $data['total_piezas'] . '</td><td>' . $data['Digital'] . '</td><td>' . $data['Impreso'] . '</td></tr>';
 }
 $html .= '
             </tbody>
         </table>
-        <div style="clear: both; margin-top: 20px;"></div>
-        <table style="width: 45%; float: left;">
-             <thead><tr><th>Resumen por Negocio</th><th>Tareas</th></tr></thead>
+        <table style="width: 100%;">
+             <thead><tr><th>Resumen por Negocio</th><th>Tareas</th><th>Nº Piezas</th><th>Digital</th><th>Impreso</th></tr></thead>
              <tbody>';
-foreach ($resumen_negocio as $nombre => $total) {
-    $html .= '<tr><td>' . e($nombre) . '</td><td>' . $total . '</td></tr>';
+foreach ($resumen_negocio as $nombre => $data) {
+    $html .= '<tr><td>' . e($nombre) . '</td><td>' . $data['total_tareas'] . '</td><td>' . $data['total_piezas'] . '</td><td>' . $data['Digital'] . '</td><td>' . $data['Impreso'] . '</td></tr>';
 }
 $html .= '
             </tbody>

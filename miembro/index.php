@@ -62,10 +62,10 @@ include '../includes/header_miembro.php';
     <div class="card">
         <div class="table-wrapper">
             <table>
-                <thead><tr><th>Nombre Tarea</th><th>Creado por</th><th>Nº Piezas</th><th>Negocio</th><th>Fecha Creación</th><th>Fecha Vencimiento</th><th>Prioridad</th><th>Estado</th><th>Acción</th></tr></thead>
+                <thead><tr><th>Nombre Tarea</th><th>Creado por</th><th>Nº Piezas</th><th>Negocio</th><th>Tipo de Trabajo</th><th>Fecha Creación</th><th>Fecha Vencimiento</th><th>Prioridad</th><th>Estado</th><th>Acción</th></tr></thead>
                 <tbody>
                     <?php if(empty($tareas)): ?>
-                        <tr><td colspan="9" style="text-align:center;">¡Felicidades! No tienes tareas pendientes.</td></tr>
+                        <tr><td colspan="10" style="text-align:center;">¡Felicidades! No tienes tareas pendientes.</td></tr>
                     <?php else: ?>
                         <?php foreach($tareas as $tarea): ?>
                             <tr>
@@ -73,6 +73,7 @@ include '../includes/header_miembro.php';
                                 <td><?php echo e($tarea['nombre_creador']); ?></td>
                                 <td><?php echo e($tarea['numero_piezas']); ?></td>
                                 <td><?php echo e($tarea['negocio']); ?></td>
+                                <td><?php echo e($tarea['tipo_trabajo']); ?></td>
                                 <td><span class="icon-text"><i class="fas fa-calendar-plus"></i> <?php echo date('d/m/Y H:i', strtotime($tarea['fecha_creacion'])); ?></span></td>
                                 <td><span class="icon-text"><i class="fas fa-calendar-day"></i> <?php echo date('d/m/Y H:i', strtotime($tarea['fecha_vencimiento'])); ?></span></td>
                                 <td>
