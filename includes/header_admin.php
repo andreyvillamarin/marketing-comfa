@@ -32,6 +32,7 @@
                 <a href="<?php echo BASE_URL; ?>/admin/crear_tarea.php">Crear Tarea</a>
                 <a href="<?php echo BASE_URL; ?>/admin/tareas.php">Tareas Activas</a>
                 <a href="<?php echo BASE_URL; ?>/admin/tareas_completadas.php">Tareas Completadas</a>
+                <a href="<?php echo BASE_URL; ?>/admin/tareas_archivadas.php">Tareas Archivadas</a>
                 <a href="<?php echo BASE_URL; ?>/admin/miembros.php">Gestionar Equipo</a>
                 <a href="<?php echo BASE_URL; ?>/admin/analiticas.php">Analíticas</a>
             <?php elseif ($_SESSION['user_rol'] === 'analista'): ?>
