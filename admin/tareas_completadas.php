@@ -10,6 +10,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['eliminar_seleccionado
         } else { $error = "No se selecciono ninguna tarea."; }
     }
 }
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['archivar_seleccionados'])) {
+    if ($rol_usuario_actual === 'admin') {
+        $ids_tareas = isset($_POST['ids_tareas']) ? $_POST['ids_tareas'] : [];
+        if (!empty($ids_tareas)) {
+            try {
+                $placeholders = implode(',', array_fill(0, count($ids_tareas), '?'));
+                $stmt = $pdo->prepare("UPDATE tareas SET archivada = 1 WHERE id_tarea IN ($placeholders)");
+                $stmt->execute($ids_tareas);
+                $mensaje = "Tareas seleccionadas archivadas.";
+            } catch (PDOException $e) {
+                $error = "Error al archivar las tareas.";
+            }
+        } else {
+            $error = "No se seleccionó ninguna tarea.";
+        }
+    }
+}
 $sql = "
     SELECT
         t.*,
@@ -26,7 +44,7 @@ $sql = "
         usuarios u_asignado ON ta.id_usuario = u_asignado.id_usuario
 ";
 $params = [];
-$where_clauses = ["t.estado = 'completada'"];
+$where_clauses = ["t.estado = 'completada'", "t.archivada = 0"];
 
 if ($rol_usuario_actual === 'analista') {
     $where_clauses[] = "t.id_admin_creador = ?";
@@ -74,6 +92,7 @@ include '../includes/header_admin.php';
 </div>
 <form action="tareas_completadas.php" method="POST">
     <?php if ($rol_usuario_actual === 'admin'): ?>
+    <button type="submit" name="archivar_seleccionados" class="btn btn-secondary" onclick="return confirm('¿Estás seguro de que deseas archivar las tareas seleccionadas?');" style="margin-top: 20px; margin-left: 10px; background-color: #6c757d; border-color: #6c757d;"><i class="fas fa-archive"></i> Archivar Seleccionados</button>
     <button type="submit" name="eliminar_seleccionados" class="btn btn-danger" onclick="return confirm('Estas Seguro?');" style="margin-top: 20px;"><i class="fas fa-trash-can"></i> Eliminar Seleccionados</button>
     <?php endif; ?>
     <div class="table-wrapper">
