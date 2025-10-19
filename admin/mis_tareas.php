@@ -47,12 +47,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['finalizar_tarea'])) {
 }
 
 
-// Consulta para obtener tareas creadas por un admin y asignadas a este analista
+// Consulta para obtener tareas asignadas a este analista (creadas por admin o por otro analista)
 $sql = "
     SELECT t.*, u.nombre_completo as creador 
     FROM tareas t 
     JOIN usuarios u ON t.id_admin_creador = u.id_usuario
-    WHERE u.rol = 'admin' AND t.id_tarea IN (
+    WHERE t.id_tarea IN (
         SELECT ta.id_tarea FROM tareas_asignadas ta WHERE ta.id_usuario = ?
     )
 ";
@@ -79,7 +79,7 @@ include '../includes/header_admin.php';
         <table>
             <thead>
                 <tr>
-                    <th>Nombre Tarea</th><th>Creador (Admin)</th><th>Fecha Vencimiento</th><th>Estado</th><th>Prioridad</th><th>Acciones</th>
+                    <th>Nombre Tarea</th><th>Creador</th><th>Fecha Vencimiento</th><th>Estado</th><th>Prioridad</th><th>Acciones</th>
                 </tr>
             </thead>
             <tbody>
