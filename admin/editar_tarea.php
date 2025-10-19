@@ -383,6 +383,8 @@ include '../includes/header_admin.php';
                     <option value="MPC" <?php if(isset($tarea['negocio']) && $tarea['negocio'] == 'MPC') echo 'selected'; ?>>MPC</option>
                     <option value="Credito" <?php if(isset($tarea['negocio']) && $tarea['negocio'] == 'Credito') echo 'selected'; ?>>Crédito</option>
                     <option value="Interna" <?php if(isset($tarea['negocio']) && $tarea['negocio'] == 'Interna') echo 'selected'; ?>>Interna</option>
+                    <option value="Dirección" <?php if(isset($tarea['negocio']) && $tarea['negocio'] == 'Dirección') echo 'selected'; ?>>Dirección</option>
+                    <option value="Infraestructura" <?php if(isset($tarea['negocio']) && $tarea['negocio'] == 'Infraestructura') echo 'selected'; ?>>Infraestructura</option>
                 </select>
             </div>
             <hr><h4>Usuarios Asignados</h4>
