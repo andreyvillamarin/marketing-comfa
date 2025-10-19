@@ -122,6 +122,8 @@ include '../includes/header_admin.php';
                 <option value="MPC">MPC</option>
                 <option value="Credito">Crédito</option>
                 <option value="Interna">Interna</option>
+                <option value="Dirección">Dirección</option>
+                <option value="Infraestructura">Infraestructura</option>
             </select>
         </div>
         <div class="form-group">
